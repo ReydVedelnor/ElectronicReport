@@ -1,0 +1,269 @@
+@font-face {
+    font-family: "ReportTimes";
+    src: url("../fonts/timesbd.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "ReportTimes";
+    src: url("../fonts/times.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 8mm 8mm 8mm 8mm;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #ffffff;
+    font-family: "ReportTimes", serif;
+    color: #000;
+    font-size: 10px;
+    line-height: 1.15;
+}
+
+.page {
+    width: 100%;
+    background: #fff;
+}
+
+.title {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 3px;
+    line-height: 1.2;
+}
+
+.date {
+    text-align: right;
+    font-size: 10px;
+    margin-right: 33px;
+    margin-bottom: 2px;
+    line-height: 1.15;
+}
+
+table.report {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: 1px solid #000;
+}
+
+.report thead {
+    display: table-header-group;
+}
+
+.report th,
+.report td {
+    border: 1px solid #000;
+    padding: 3px 4px;
+    vertical-align: middle;
+}
+
+.report th {
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+}
+
+.col-name {
+    width: 51.7%;
+}
+
+.col-shift {
+    text-align: center;
+}
+
+.header-row th {
+    height: 30px;
+    font-size: 10px;
+    line-height: 1.15;
+}
+
+.shift-title {
+    font-weight: 700;
+    letter-spacing: 0.1px;
+}
+
+.shift-time {
+    font-size: 10px;
+    font-weight: 400;
+    margin-top: 2px;
+    line-height: 1.1;
+    letter-spacing: normal;
+}
+
+.section td {
+    background: #e8e8e8;
+    text-align: center;
+    font-weight: 400;
+    padding: 2px 0;
+    height: 14px;
+    line-height: 1.1;
+    font-size: 10px;
+}
+
+.data-row {
+    page-break-inside: avoid;
+}
+
+.data-row td {
+    min-height: 24px;
+}
+
+.position-cell {
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.15;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 10px;
+}
+
+.position {
+    font-weight: 400;
+}
+
+.position-bold {
+    font-weight: 700;
+    letter-spacing: 0.1px;
+}
+
+.subtext {
+    font-weight: 400;
+    font-size: 10px;
+    line-height: 1.1;
+    letter-spacing: normal;
+}
+
+.data {
+    text-align: center;
+    font-size: 10px;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+
+.empty-row td {
+    height: 28px;
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.15;
+}
+
+/* Подписи вынесены из основной таблицы, чтобы openhtmltopdf не ломал переносы */
+.signatures-report {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: 1px solid #000;
+    margin-top: -1px;
+    page-break-inside: avoid;
+}
+
+.signatures-report td {
+    padding: 0;
+    vertical-align: top;
+}
+
+.left-signatures {
+    width: 52.5%;
+    border-right: 1px solid #000;
+    padding: 8px 8px 0 8px !important;
+    height: 110px;
+}
+
+.right-signatures {
+    width: 47.5%;
+    height: 110px;
+}
+
+.sign-title {
+    text-align: center;
+    font-style: italic;
+    margin-bottom: 7px;
+    font-size: 10px;
+    line-height: 1.15;
+}
+
+.left-sign-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.left-sign-table td {
+    border: none;
+    padding: 0 0 9px 0;
+    font-size: 10px;
+    line-height: 1.1;
+}
+
+.sign-role {
+    width: 210px;
+    white-space: nowrap;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+}
+
+.sign-line-cell {
+    border-bottom: 1px solid #000 !important;
+    height: 12px;
+}
+
+.chief-role {
+    padding-top: 5px !important;
+}
+
+.right-sign-table {
+    width: 100%;
+    height: 110px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.right-sign-table td {
+    padding: 0;
+}
+
+.right-sign-header {
+    height: 38px;
+    border-bottom: 1px solid #000 !important;
+    text-align: center;
+    vertical-align: middle !important;
+    font-size: 10px;
+    line-height: 1.15;
+}
+
+.right-sign-cell {
+    height: 72px;
+    border-right: 1px solid #000 !important;
+}
+
+.right-sign-cell.last {
+    border-right: none !important;
+}
+
+/* Примечания строго после подписей */
+.notes {
+    margin-top: 6px;
+    font-size: 10px;
+    line-height: 1.22;
+    page-break-inside: avoid;
+}
+
+.note {
+    margin-top: 2px;
+}

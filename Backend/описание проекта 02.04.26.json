@@ -1,0 +1,277 @@
+{
+	"project": {
+		"name": "Production Reporting System",
+		"description": "Система учета смен, отчетов и показателей с поддержкой истории изменений, передачи смен и аналитики за период",
+		"architecture": "Spring Boot, layered (api → application → domain → repository), use-case driven",
+		"timezone": "+05:00 (assumed global)"
+	},
+	"core_entities": {
+		"User": {
+			"fields": [
+				"userId",
+				"lastName",
+				"firstName",
+				"middleName",
+				"isActive"
+			]
+		},
+		"Credential": {
+			"fields": [
+				"userId (PK, FK → users)",
+				"login (unique)",
+				"passwordHash (BCrypt)",
+				"lastLoginAt",
+				"failedLoginAttempts",
+				"updatedAt"
+			],
+			"purpose": "auth data separate from user profile"
+		},
+		"Department": {
+			"fields": [
+				"departmentId",
+				"name",
+				"isActive"
+			]
+		},
+		"DepartmentUser": {
+			"fields": [
+				"departmentId",
+				"userId"
+			],
+			"relation": "many-to-many (user ↔ department)"
+		},
+		"DepartmentSchedule": {
+			"fields": [
+				"scheduleId",
+				"departmentId",
+				"name",
+				"sortOrder",
+				"startTime",
+				"endTime",
+				"crossesMidnight"
+			]
+		},
+		"Shift": {
+			"fields": [
+				"shiftId",
+				"departmentId",
+				"scheduleId",
+				"engineerUserId",
+				"startedAt",
+				"endedAt",
+				"status (open/closed)"
+			]
+		},
+		"ReportInstance": {
+			"fields": [
+				"reportId",
+				"shiftId",
+				"templateId",
+				"status (ready/not_ready)"
+			]
+		},
+		"Attribute": {
+			"fields": [
+				"attributeId",
+				"name",
+				"nodeType (section/metric)",
+				"dataType",
+				"unit",
+				"isRequired"
+			]
+		},
+		"TemplateAttribute": {
+			"fields": [
+				"templateId",
+				"attributeId",
+				"sortOrder",
+				"displayStyle"
+			]
+		},
+		"AttributeValue": {
+			"fields": [
+				"attributeValueId",
+				"reportId",
+				"attributeId",
+				"valueText"
+			]
+		},
+		"AttributeValueHistory": {
+			"fields": [
+				"historyId",
+				"attributeValueId",
+				"oldValue",
+				"newValue",
+				"changedAt",
+				"changedByUserId",
+				"comment"
+			]
+		},
+		"ShiftHandoff": {
+			"fields": [
+				"handoffId",
+				"fromShiftId",
+				"toShiftId",
+				"handoffStatus (sent/accepted/rejected)",
+				"message"
+			]
+		}
+	},
+	"implemented_use_cases": {
+		"OpenShift": {
+			"description": "Открытие смены",
+			"logic": [
+				"валидировать request",
+				"найти department, schedule, user",
+				"проверить активность",
+				"найти предыдущую смену по startedAt < request.startedAt",
+				"создать shift",
+				"создать reportInstance",
+				"вернуть response + previousShift info"
+			]
+		},
+		"SaveReportValues": {
+			"description": "Сохранение значений отчета",
+			"special_logic": [
+				"если отчет закрыт → разрешить редактирование",
+				"но добавить prefix в comment:",
+				"200 Редактирование после закрытия смены."
+			]
+		},
+		"CompleteShift": {
+			"description": "Завершение смены",
+			"logic": [
+				"проверка обязательных значений",
+				"установка shift.status=closed",
+				"установка endedAt"
+			]
+		},
+		"Login": {
+			"description": "Аутентификация пользователя",
+			"logic": [
+				"поиск credential по login",
+				"проверка BCrypt",
+				"увеличение failedLoginAttempts при ошибке",
+				"сброс при успехе",
+				"обновление lastLoginAt"
+			],
+			"note": "используется отдельный CredentialAuditService с REQUIRES_NEW"
+		},
+		"GetShiftStartContext": {
+			"description": "Получение контекста для начала смены",
+			"logic": [
+				"найти пользователя",
+				"найти department через department_users",
+				"проверить что он один",
+				"получить schedules",
+				"вернуть DTO для фронта"
+			]
+		}
+	},
+	"api": {
+		"auth": {
+			"POST /api/auth/login": {
+				"request": {
+					"login": "string",
+					"password": "string"
+				},
+				"response": {
+					"userId": "UUID",
+					"login": "string",
+					"fullName": "string"
+				}
+			}
+		},
+		"shifts": {
+			"POST /api/shifts": "open shift",
+			"GET /api/shifts/start-context?userId=": "init shift screen",
+			"PUT /api/reports/{reportId}/values": "save values",
+			"POST /api/shifts/{shiftId}/complete": "complete shift",
+			"GET /api/shifts/{shiftId}/report-form": "existing form endpoint"
+		}
+	},
+	"report_period_table": {
+		"purpose": "вывод таблицы значений за период (дата + смены)",
+		"structure": {
+			"columns": [
+				"date",
+				"scheduleId",
+				"scheduleName",
+				"timeLabel",
+				"shiftId",
+				"reportId"
+			],
+			"rows": [
+				{
+					"attributeId": "UUID",
+					"name": "string",
+					"values": {
+						"columnKey": "value or null"
+					}
+				}
+			]
+		},
+		"column_key_format": "YYYY-MM-DD_sortOrder",
+		"notes": [
+			"columns растут вправо",
+			"rows фиксированы",
+			"values могут быть null",
+			"данные берутся из attribute_values"
+		]
+	},
+	"business_rules": {
+		"shift": [
+			"смена может быть открыта даже если предыдущая не закрыта",
+			"предыдущая смена → warning, не ошибка",
+			"1 смена = 1 handoff"
+		],
+		"report": [
+			"можно редактировать после закрытия",
+			"но с audit prefix"
+		],
+		"user": [
+			"пользователь должен быть активен",
+			"должен принадлежать department"
+		],
+		"schedule": [
+			"выбирается пользователем",
+			"используется scheduleId, не name"
+		]
+	},
+	"pending_features": [
+		"JWT авторизация",
+		"handoff_shift endpoint",
+		"handoff accept",
+		"workspace/current endpoint",
+		"report table by period (в разработке сейчас)",
+		"validation layer extraction",
+		"mapper layer extraction",
+		"unit + integration tests",
+		"audit improvements"
+	],
+	"next_major_feature": {
+		"name": "Report Period Table",
+		"description": "таблица значений за период по сменам",
+		"steps": [
+			"получить shifts по department + period",
+			"собрать columns",
+			"собрать attribute list из template",
+			"собрать values через reportInstance → attributeValues",
+			"сформировать rows.values map"
+		]
+	},
+	"required_files_for_next_step": [
+		"GetShiftReportFormUseCase.java",
+		"ShiftReportFormResponse.java",
+		"ReportFormItemResponse.java",
+		"ShiftController.java",
+		"DepartmentSchedule.java",
+		"DepartmentScheduleRepository.java",
+		"AttributeValue.java",
+		"TemplateAttributeRepository.java",
+		"ReportInstanceRepository.java",
+		"ShiftRepository.java",
+		"TemplateAttribute.java",
+		"Attribute.java"
+	]
+}

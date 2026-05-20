@@ -1,0 +1,750 @@
+.role-system-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #5a6271;
+}
+
+.role-system-toolbar,
+.role-system-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.role-system-toolbar--list {
+  align-items: center;
+}
+
+.role-system-header__left,
+.role-system-header__actions,
+.role-system-title-wrap,
+.role-system-actions,
+.role-system-members-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-system-header__actions {
+  gap: 12px;
+  margin-left: auto;
+}
+
+.role-system-separator {
+  height: 1px;
+  margin: 18px 0;
+  background: var(--color-border);
+}
+
+.role-system-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.role-system-card--list {
+  width: 100%;
+  overflow: hidden;
+}
+
+.role-system-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(320px, 360px);
+  gap: 16px;
+  align-items: start;
+}
+
+.role-system-card--permissions,
+.role-system-card--members {
+  min-height: 458px;
+  padding: 12px 14px 16px;
+}
+
+.role-system-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.role-system-card-title {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.role-system-search {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.role-system-search--wide {
+  width: 200px;
+  min-width: 200px;
+}
+
+.role-system-searchbar {
+  width: 236px;
+}
+
+.role-system-search--compact {
+  width: 160px;
+  min-width: 160px;
+}
+
+.role-system-search__icon,
+.role-system-search__filter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 100%;
+  flex: 0 0 36px;
+}
+
+.role-system-search__icon .svg-icon,
+.role-system-search__filter .svg-icon,
+.role-system-back .svg-icon,
+.role-system-title-edit .svg-icon,
+.role-system-header-btn .svg-icon,
+.role-system-action-btn .svg-icon,
+.role-system-check .svg-icon,
+.role-system-members-count .svg-icon {
+  display: block;
+}
+
+.role-system-search__icon .svg-icon,
+.role-system-search__filter .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.role-system-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 13px;
+  color: #5a6271;
+}
+
+.role-system-search input::placeholder {
+  color: #8993a5;
+}
+
+.role-system-search__filter {
+  border: 0;
+  border-left: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+}
+
+.role-system-search__filter:hover {
+  color: var(--color-primary);
+  background: var(--color-surface-soft);
+}
+
+.role-system-add-btn,
+.role-system-header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.role-system-add-btn {
+  min-width: 136px;
+  padding: 0 16px;
+  background: var(--color-primary);
+}
+
+.role-system-add-btn__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.role-system-header-btn {
+  padding: 0 14px;
+}
+
+.role-system-header-btn .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.role-system-header-btn--save,
+.role-system-header-btn--activate {
+  background: var(--color-success);
+}
+
+.role-system-header-btn--delete,
+.role-system-header-btn--deactivate {
+  background: var(--color-danger);
+}
+
+.role-system-add-btn:hover,
+.role-system-header-btn:hover {
+  transform: translateY(-1px);
+}
+
+.role-system-add-btn:hover {
+  background: var(--color-primary-hover);
+}
+
+.role-system-header-btn--save:hover,
+.role-system-header-btn--activate:hover:not(:disabled) {
+  background: var(--color-success-hover);
+}
+
+.role-system-header-btn--delete:hover,
+.role-system-header-btn--deactivate:hover:not(:disabled) {
+  background: var(--color-danger-hover);
+}
+
+.role-system-header-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
+}
+
+.role-system-back,
+.role-system-title-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.role-system-back {
+  width: 28px;
+  height: 28px;
+}
+
+.role-system-back .svg-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.role-system-title {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.role-system-title-edit {
+  width: 22px;
+  height: 22px;
+}
+
+.role-system-title-edit .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.role-system-back:hover,
+.role-system-title-edit:hover {
+  color: var(--color-primary);
+  background: var(--color-surface-soft);
+  transform: translateY(-1px);
+}
+
+.role-system-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.role-system-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: var(--color-surface);
+}
+
+.role-system-table--permissions th,
+.role-system-table--permissions td {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+}
+
+.role-system-table--permissions th {
+  background: var(--color-surface-muted);
+  color: #5f6675;
+  font-weight: 600;
+  text-align: center;
+}
+
+.role-system-table--permissions .role-system-table__text-cell {
+  color: var(--color-text);
+}
+
+.role-system-table--permissions .role-system-table__action-cell {
+  width: 58px;
+  text-align: center;
+}
+
+.role-system-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.role-system-check:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-soft);
+}
+
+.role-system-check .svg-icon {
+  width: 12px;
+  height: 12px;
+  opacity: 0.45;
+}
+
+.role-system-check.is-active {
+  background: #dff4e4;
+  border-color: #90d3a0;
+}
+
+.role-system-check.is-active .svg-icon {
+  opacity: 1;
+}
+
+.role-system-members-count {
+  margin-top: 6px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.role-system-members-count .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.role-system-members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.role-system-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+  cursor: default;
+}
+
+.role-system-member.is-selected {
+  border-color: #b6d2f5;
+  background: var(--color-primary-soft);
+}
+
+.role-system-member__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.role-system-member__name {
+  color: var(--color-text-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.role-system-member__meta {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.role-system-member__view-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.role-system-member__view-icon .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.role-system-actions {
+  gap: 8px;
+}
+
+.role-system-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1100;
+  min-width: 240px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.role-system-toast--success {
+  background: var(--color-success);
+}
+
+.role-system-toast--info {
+  background: var(--color-primary);
+}
+
+.role-system-empty-note {
+  padding: 24px 8px;
+  color: var(--color-text-soft);
+  text-align: center;
+  font-size: 13px;
+}
+
+
+.role-system-table--list {
+  background: transparent;
+}
+
+.role-system-table--list th {
+  padding: 12px 16px;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+}
+
+.role-system-table--list td {
+  padding: 14px 16px;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: transparent;
+}
+
+.role-system-table--list tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.role-system-table--list th:last-child,
+.role-system-table--list td:last-child {
+  text-align: center;
+}
+
+.role-system-table__num {
+  width: 52px;
+}
+
+.role-system-table__role {
+  width: auto;
+}
+
+.role-system-table__participants {
+  width: 112px;
+}
+
+.role-system-table__actions {
+  width: 132px;
+}
+
+.role-system-role-name {
+  color: var(--color-text);
+  font-weight: 400;
+}
+
+.role-system-role-count {
+  text-align: left;
+  color: var(--color-text);
+  font-weight: 400;
+}
+
+.role-system-table .role-system-actions {
+  justify-content: center;
+}
+
+.role-system-action-btn--copy {
+  background: #e0f0ff;
+  color: var(--color-primary);
+}
+
+.role-system-action-btn--copy:hover {
+  background: #cfe7ff;
+}
+
+.role-system-action-btn--activate {
+  background: #ecfdf3;
+  color: #027a48;
+  border: 1px solid #abefc6;
+}
+
+.role-system-action-btn--activate:hover:not(:disabled) {
+  background: #dcfae6;
+}
+
+.role-system-action-btn--deactivate {
+  background: #fef2f2;
+  color: #b42318;
+  border: 1px solid #fecaca;
+}
+
+.role-system-action-btn--deactivate:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.role-system-action-btn--activate:disabled,
+.role-system-action-btn--deactivate:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
+}
+
+
+@media (max-width: 720px) {
+  .role-system-searchbar {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+}
+
+.role-system-card-subtitle {
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.role-system-permission-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.role-system-permission-cell__title {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.role-system-permission-cell__meta {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+
+.role-system-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-system-disabled-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.role-system-card--members.is-disabled {
+  position: relative;
+}
+
+.role-system-search.is-disabled {
+  opacity: 0.65;
+}
+
+.role-system-search.is-disabled input,
+.role-system-search.is-disabled button {
+  cursor: not-allowed;
+}
+
+.role-system-member.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.role-system-member.is-disabled:hover {
+  transform: none;
+}
+
+.role-system-member.is-disabled input {
+  pointer-events: none;
+}
+
+
+.role-system-inline-note {
+  padding: 12px 14px;
+  border: 1px solid #f0d3a6;
+  border-radius: var(--radius-md);
+  background: #fff7eb;
+  color: #8f5e14;
+  font-size: 13px;
+}
+
+.role-system-active-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #e8f7ed;
+  border: 1px solid #b8e0c2;
+  color: #297344;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.role-system-member {
+  text-align: left;
+}
+
+.role-system-member:not(.role-system-member--readonly):hover {
+  border-color: #c9d8ef;
+  background: #f7fbff;
+}
+
+.role-system-member--readonly {
+  cursor: default;
+}
+
+.role-system-member.is-pending {
+  opacity: 0.72;
+}
+
+.role-system-member__role-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.role-system-member__role-badge,
+.role-system-member__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.role-system-member__role-badge {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-soft);
+}
+
+.role-system-member__role-badge.is-selected {
+  border-color: #b6d2f5;
+  background: #eef6ff;
+  color: var(--color-primary);
+}
+
+.role-system-member__status {
+  border: 1px solid #e1d7ff;
+  background: #f4efff;
+  color: #6b58a5;
+}
+
+.role-system-member--link {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.role-system-member--link:hover {
+  border-color: #c9d8ef;
+  background: #f7fbff;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+  transform: translateY(-1px);
+}
+
+.role-system-member--link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.role-system-member--link .role-system-member__view-icon {
+  color: var(--color-primary);
+}
+
+.role-system-toolbar-meta {
+  margin-top: -6px;
+}
+
+.role-system-table__status {
+  width: 168px;
+}
+
+.role-system-status-cell .status-badge {
+  white-space: nowrap;
+}
+
+.role-system-action-btn--activate:disabled,
+.role-system-action-btn--deactivate:disabled {
+  color: #98a2b3;
+  background: #f2f4f7;
+  border-color: #e4e7ec;
+}

@@ -1,0 +1,290 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Atomix
+meta:
+  id: wrk_da8dca13b0d74ab1a47795e9b5f12f20
+  created: 1774216025087
+  modified: 1774379944028
+  description: ""
+collection:
+  - name: Development
+    meta:
+      id: fld_8b3d71f4963c44f983f718c1020e7d44
+      created: 1774379259779
+      modified: 1775167174172
+      sortKey: -1774379259780
+      description: ""
+    children:
+      - url: http://localhost:8080/api/auth/login
+        name: Login
+        meta:
+          id: req_c308111a5c8943bf9abd16a4b6419114
+          created: 1775162527096
+          modified: 1775167483755
+          isPrivate: false
+          description: ""
+          sortKey: -1774379265674
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"login": "инженер",
+            	"password": "123"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - name: Главная
+        meta:
+          id: fld_9d9bea36070d4f1aaf1f067fbfd3b75b
+          created: 1775167275527
+          modified: 1775167479952
+          sortKey: -1774379265574
+          description: ""
+        children:
+          - url: http://localhost:8080/api/shifts
+            name: Start shift
+            meta:
+              id: req_ee8692f925ea4204ae77131b588a05b3
+              created: 1774216025142
+              modified: 1775167290155
+              isPrivate: false
+              description: ""
+              sortKey: -1775167284233
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"departmentId": "e7648a66-d84e-4e37-bfc5-7d760a6ecdd8",
+                	"scheduleId": "7d94106f-01ca-40ca-b260-3673c0f41c0a",
+                	"engineerUserId": "1025389a-0e27-4e08-b6a0-b188660bea57",
+                	"startedAt": "2020-03-23T07:00:00+05:00"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/shifts/{{ _.test_shift }}/report-form
+            name: Template by shift ID
+            meta:
+              id: req_aae993de3ade415094fbbc7ff21ec29e
+              created: 1774266128455
+              modified: 1775206143898
+              isPrivate: false
+              description: ""
+              sortKey: -1775167284183
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/reports/{{ _.test_report }}/values
+            name: Write values by report ID
+            meta:
+              id: req_912a9b2b2dec4569b02614d6531a09cd
+              created: 1774379893325
+              modified: 1775167287258
+              isPrivate: false
+              description: ""
+              sortKey: -1775167284133
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "changedByUserId": "1025389a-0e27-4e08-b6a0-b188660bea57",
+                  "comment": "Стандартное заполнение",
+                  "values": [
+                    {
+                      "attributeId": "7b0ebbf2-cf8f-47ac-923b-2bda30dc1eb1",
+                      "value": "ё"
+                    },
+                		{
+                      "attributeId": "f28188e3-fdb9-4d41-9a5a-2d3ff2730842",
+                      "value": "1010"
+                    }
+                  ]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/shifts/{{ _.test_shift }}/complete
+            name: Complete shift
+            meta:
+              id: req_e7972f212ed14913a69d7325bc4ad7da
+              created: 1774887928843
+              modified: 1775167288257
+              isPrivate: false
+              description: ""
+              sortKey: -1775167284083
+            method: POST
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/shifts/start-context?userId={{ _.user_id }}
+            name: Для окна начала смены
+            meta:
+              id: req_b42f2c6482764b7285661fda81a6dac6
+              created: 1775168647829
+              modified: 1775205813641
+              isPrivate: false
+              description: ""
+              sortKey: -1775168647829
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Рапорты
+        meta:
+          id: fld_5327423690ac4d1b8302073d99824dce
+          created: 1775167361872
+          modified: 1775167490109
+          sortKey: -1774379265474
+          description: ""
+        children:
+          - url: http://localhost:8080/api/reports/period?departmentId={{ _.department_id
+              }}&dateFrom=2026-01-20&dateTo=2026-01-22
+            name: Таблица значений за период
+            meta:
+              id: req_27e184f83d2d43c5b45612d0994c82ef
+              created: 1775205676905
+              modified: 1775229951472
+              isPrivate: false
+              description: ""
+              sortKey: -1775205676905
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Шаблоны
+        meta:
+          id: fld_d270364f34d94a758af895402785028a
+          created: 1775167387587
+          modified: 1775167464175
+          sortKey: -1774379265374
+          description: ""
+      - name: Отчеты
+        meta:
+          id: fld_b1d3d40794ce468ab49ef816dd4f7654
+          created: 1775167396774
+          modified: 1775167468571
+          sortKey: -1774379265324
+          description: ""
+      - name: Сотрудники
+        meta:
+          id: fld_25641d6d01294f5287f6aaa0fd556ab2
+          created: 1775167407415
+          modified: 1775167470869
+          sortKey: -1774379265299
+          description: ""
+      - name: Структура предприятия
+        meta:
+          id: fld_02c0590d87a94135b530663443ac57df
+          created: 1775167425220
+          modified: 1775167472412
+          sortKey: -1774379265286.5
+          description: ""
+      - name: Ролевая система
+        meta:
+          id: fld_29c6122ea0834e18a5c27d8c50802978
+          created: 1775167435305
+          modified: 1775167493417
+          sortKey: -1774379265280.25
+          description: ""
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_0e8cd4ece8b1eb0552743a6e62b55472c305b366
+    created: 1774216025089
+    modified: 1774216025089
+environments:
+  name: Base Environment
+  meta:
+    id: env_0e8cd4ece8b1eb0552743a6e62b55472c305b366
+    created: 1774216025088
+    modified: 1775205730772
+    isPrivate: false
+  data:
+    shift_id: 96554daf-3b3f-4967-844b-0245a2e72f78
+    report_id: fe238c96-baa2-470b-9245-ccd49439b800
+    localhost: http://localhost:8080
+    test_shift: 0f347667-e309-4e6d-9e34-a68cd614ebfc
+    test_report: ad757e71-9b24-4839-8a92-c475ebf50662
+    user_id: 1025389a-0e27-4e08-b6a0-b188660bea57
+    department_id: e7648a66-d84e-4e37-bfc5-7d760a6ecdd8

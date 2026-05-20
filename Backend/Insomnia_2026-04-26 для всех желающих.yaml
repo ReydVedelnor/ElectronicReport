@@ -1,0 +1,812 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Atomix
+meta:
+  id: wrk_da8dca13b0d74ab1a47795e9b5f12f20
+  created: 1774216025087
+  modified: 1774379944028
+  description: ""
+collection:
+  - name: Development
+    meta:
+      id: fld_8b3d71f4963c44f983f718c1020e7d44
+      created: 1774379259779
+      modified: 1775167174172
+      sortKey: -1774379259780
+      description: ""
+    children:
+      - url: http://localhost:8080/api/auth/login
+        name: Login
+        meta:
+          id: req_c308111a5c8943bf9abd16a4b6419114
+          created: 1775162527096
+          modified: 1777215794212
+          isPrivate: false
+          description: ""
+          sortKey: -1774379265674
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"login": "админ",
+            	"password": "123"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - name: Главная
+        meta:
+          id: fld_9d9bea36070d4f1aaf1f067fbfd3b75b
+          created: 1775167275527
+          modified: 1776162322706
+          sortKey: -1774379265574
+          description: ""
+        children:
+          - url: http://localhost:8080/api/shifts
+            name: Start shift
+            meta:
+              id: req_ee8692f925ea4204ae77131b588a05b3
+              created: 1774216025142
+              modified: 1777221683948
+              isPrivate: false
+              description: ""
+              sortKey: -1775167284233
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"departmentId": "e7648a66-d84e-4e37-bfc5-7d760a6ecdd8",
+                	"scheduleId": "96e70ab9-2fd7-4727-ab81-20c3edd34159",
+                	"engineerUserId": "1025389a-0e27-4e08-b6a0-b188660bea57",
+                	"startedAt": "2000-01-01T00:00:02+05:00"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/shifts/{{ _.shift_id }}/report-form
+            name: Template by shift ID
+            meta:
+              id: req_aae993de3ade415094fbbc7ff21ec29e
+              created: 1774266128455
+              modified: 1777220739200
+              isPrivate: false
+              description: ""
+              sortKey: -1775167284183
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/reports/{{ _.report_id }}/values
+            name: Write values by report ID
+            meta:
+              id: req_912a9b2b2dec4569b02614d6531a09cd
+              created: 1774379893325
+              modified: 1777221765045
+              isPrivate: false
+              description: ""
+              sortKey: -1775167284133
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "changedByUserId": "1025389a-0e27-4e08-b6a0-b188660bea57",
+                  "comment": "Стандартное заполнение",
+                  "values": [
+                    {
+                      "attributeId": "7b0ebbf2-cf8f-47ac-923b-2bda30dc1eb1",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "f28188e3-fdb9-4d41-9a5a-2d3ff2730842",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "cb2e05b8-5feb-47b8-933a-868b1e703342",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "0efafdb9-d607-4960-97f7-4c93eebe8c54",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "05baf163-db0d-4b25-80ba-05b5b80e4c69",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "0b9672ca-b402-4b76-bd72-1957304940a1",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "b7e6b576-fc4d-453c-bdab-27dc5452157c",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "c334d16b-aaff-4d34-88ef-61f95cbe7e3a",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "7cc0365f-3df4-4389-93f7-6f3907b1d014",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "8f209177-d1f1-4419-bc20-707ccd166660",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "55f17e1c-4c8a-4983-8c8c-06e26dac38b4",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "80497194-a652-4edc-9fcb-5c90d9e9d88f",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "5f3148ed-7aaf-4da2-98a1-4b1025edd7a5",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "734cd218-e0cc-4267-8226-8cafa57be5b9",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "cf3783f3-556c-4bf6-94ab-968d28be63d4",
+                      "value": "з"
+                    },
+                    {
+                      "attributeId": "c3fe8886-d3f1-4972-9d51-901392b86864",
+                      "value": "10"
+                    },
+                    {
+                      "attributeId": "321d0540-1a62-4508-a5b4-f7bb9f2af4a0",
+                      "value": "з"
+                    },
+                    {
+                      "attributeId": "0e7cb6e2-86c6-469f-8520-c7d7d5029604",
+                      "value": "з"
+                    }
+                  ]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/shifts/{{ _.shift_id }}/complete
+            name: Complete shift
+            meta:
+              id: req_e7972f212ed14913a69d7325bc4ad7da
+              created: 1774887928843
+              modified: 1777221365567
+              isPrivate: false
+              description: ""
+              sortKey: -1775167284083
+            method: POST
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/shifts/start-context?userId={{ _.user_id }}
+            name: Для окна начала смены
+            meta:
+              id: req_b42f2c6482764b7285661fda81a6dac6
+              created: 1775168647829
+              modified: 1775205813641
+              isPrivate: false
+              description: ""
+              sortKey: -1775168647829
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.4.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/shifts/workspace/current?userId={{ _.user_id }}
+            name: Восстановление состояния
+            meta:
+              id: req_5673b3663a0b4d9599fcf6c4f8cdb71d
+              created: 1775314707839
+              modified: 1777219466590
+              isPrivate: false
+              description: ""
+              sortKey: -1775167283983
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Рапорты
+        meta:
+          id: fld_5327423690ac4d1b8302073d99824dce
+          created: 1775167361872
+          modified: 1777208519765
+          sortKey: -1774379265474
+          description: ""
+        children:
+          - url: http://localhost:8080/api/reports/period?departmentId={{ _.department_id
+              }}&dateFrom=2026-01-20&dateTo=2026-01-22
+            name: Таблица значений за период
+            meta:
+              id: req_27e184f83d2d43c5b45612d0994c82ef
+              created: 1775205676905
+              modified: 1775229951472
+              isPrivate: false
+              description: ""
+              sortKey: -1775205676905
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Шаблоны
+        meta:
+          id: fld_d270364f34d94a758af895402785028a
+          created: 1775167387587
+          modified: 1775167464175
+          sortKey: -1774379265374
+          description: ""
+      - name: Отчеты
+        meta:
+          id: fld_b1d3d40794ce468ab49ef816dd4f7654
+          created: 1775167396774
+          modified: 1777216469791
+          sortKey: -1774379265324
+          description: ""
+      - name: Сотрудники
+        meta:
+          id: fld_25641d6d01294f5287f6aaa0fd556ab2
+          created: 1775167407415
+          modified: 1775167470869
+          sortKey: -1774379265299
+          description: ""
+        children:
+          - url: http://localhost:8080/api/employees/create-context?userId={{
+              _.super_admin_id }}
+            name: Контекст для окна создания
+            meta:
+              id: req_f65c0528309f471bb6ff1611961dee49
+              created: 1775916443252
+              modified: 1777209123237
+              isPrivate: false
+              description: ""
+              sortKey: -1775923611061
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/employees/{{ _.employee_for_edit }}
+            name: Редактировать сотрудника
+            meta:
+              id: req_9ab9f714e07a438d9d757c7a8fa48c8a
+              created: 1775923610961
+              modified: 1777215059930
+              isPrivate: false
+              description: ""
+              sortKey: -1775923610961
+            method: PATCH
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "updatedByUserId": "11111111-1111-1111-1111-111111111111",
+                  "lastName": "Сандалин",
+                  "departmentId": "33333333-3333-3333-3333-333333333333",
+                  "roleId": "22222222-2222-2222-2222-222222222222",
+                  "login": "sandal",
+                  "password": "456"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/employees?userId={{ _.user_id
+              }}&page=0&size=10&search=ВаГоН
+              Петр&activity=all&roleIds={role_id_1}&roleIds={role_id_2}&departmentIds={department_id_1}&departmentIds={department_id_2}
+            name: Поиск все варианты
+            meta:
+              id: req_2f4ac97b1bf94508b8578a34504d1fcd
+              created: 1776018465711
+              modified: 1777209856095
+              isPrivate: false
+              description: ""
+              sortKey: -1776018465711
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/employees?userId={{ _.super_admin_id }}
+            name: Сразу при переходе на страницу
+            meta:
+              id: req_9383b7cfd5564899a9e6655cd1a584e4
+              created: 1776157784310
+              modified: 1777209731881
+              isPrivate: false
+              description: ""
+              sortKey: -1776839210762
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/employees/filter-context?userId={{ _.user_id }}
+            name: Контекст фильтра
+            meta:
+              id: req_1e4333bdec154f24b4518adeb0bdf12b
+              created: 1776839210662
+              modified: 1776839904767
+              isPrivate: false
+              description: ""
+              sortKey: -1776839210662
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/employees?userId={{ _.head_admin_id
+              }}&page=0&size=10
+            name: Поиск вар. 1
+            meta:
+              id: req_e97b755c88c748a2807f3c157c312543
+              created: 1776839498300
+              modified: 1777122100867
+              isPrivate: false
+              description: ""
+              sortKey: -1775971038386
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/employees/create
+            name: Создать сотрудника
+            meta:
+              id: req_05315153f9d94134814329f57be04c6f
+              created: 1776852172797
+              modified: 1777214694618
+              isPrivate: false
+              description: ""
+              sortKey: -1775923611011
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "createdByUserId": "5f3381f0-eda8-407c-a7e2-bc0fb324d9b7",
+                  "lastName": "Тестов",
+                  "firstName": "Тест",
+                  "middleName": "Тестович",
+                  "roleId": "d1e54f30-6d54-4455-8a03-0b1a0e926c86",
+                  "departmentId": "e7648a66-d84e-4e37-bfc5-7d760a6ecdd8",
+                  "login": "ivanov"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.localhost
+              }}/api/employees/90a9153e-1f5f-4f8c-a26f-41291c4e145c?userId={{
+              _.super_admin_id }}"
+            name: Карточка сотрудника + контекст редакта
+            meta:
+              id: req_eddaaf6cb7df43bda68af8497f2ad6be
+              created: 1777214592765
+              modified: 1777214968700
+              isPrivate: false
+              description: ""
+              sortKey: -1775923610973.5
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: http://localhost:8080/api/employees/{{ _.employee_for_edit }}
+            name: Редактировать сотрудника
+            meta:
+              id: req_004ac82c17704c58a8348a1a19c97f76
+              created: 1777215088251
+              modified: 1777215538415
+              isPrivate: false
+              description: ""
+              sortKey: -1775564643933
+            method: PATCH
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "updatedByUserId": "{{ _.super_admin_id }}",
+                  "login": "123"
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Структура предприятия
+        meta:
+          id: fld_02c0590d87a94135b530663443ac57df
+          created: 1775167425220
+          modified: 1775167472412
+          sortKey: -1774379265286.5
+          description: ""
+      - name: Ролевая система
+        meta:
+          id: fld_29c6122ea0834e18a5c27d8c50802978
+          created: 1775167435305
+          modified: 1777122109596
+          sortKey: -1774379265280.25
+          description: ""
+        children:
+          - url: "{{ _.localhost }}/api/roles?activity=all"
+            name: Список ролей
+            meta:
+              id: req_036e0ddfae884524a07ed4e938ad156e
+              created: 1777112837620
+              modified: 1777122150357
+              isPrivate: false
+              description: ""
+              sortKey: -1777121880661
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.localhost }}/api/roles/{{ _.test_role_id }}"
+            name: Карточка роли
+            meta:
+              id: req_b54aff5896784f18a3f6d8c118747eb7
+              created: 1777115719669
+              modified: 1777204236587
+              isPrivate: false
+              description: ""
+              sortKey: -1777121880611
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.localhost }}/api/roles/create"
+            name: Создать роль
+            meta:
+              id: req_9351c62d88684aa485a062ac0c33dac9
+              created: 1777120103359
+              modified: 1777214207113
+              isPrivate: false
+              description: ""
+              sortKey: -1777120103359
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                  "name": "эта роль деактивирована",
+                  "description": "деактивовал для тестов",
+                  "moduleIds": [
+                    "36bacdd3-9b89-42ae-b440-6691d864a061",
+                    "6bc59da2-9ba6-4614-9073-ea7b48ce2a93"
+                  ]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.localhost }}/api/roles/create-context"
+            name: Контекст для создания
+            meta:
+              id: req_b13d82d0a387452ebdd723b6c75d5e9a
+              created: 1777121880561
+              modified: 1777126859511
+              isPrivate: false
+              description: ""
+              sortKey: -1777121880561
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.localhost }}/api/roles/{{ _.test_role_id }}"
+            name: Редактировать роль
+            meta:
+              id: req_b5d5dc59cf0d4701998088b750bc77ad
+              created: 1777203238936
+              modified: 1777214448853
+              isPrivate: false
+              description: ""
+              sortKey: -1777120103259
+            method: PATCH
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	"name": "  Тестовая роль",
+                  "description": "Доступ ко всякому разному",
+                  "isActive": true,
+                  "moduleIds": [
+                    "e2e30f53-a2d5-4a2d-924e-f4215c28a2d2",
+                    "fd36417c-ff36-4471-b7d6-6297311679e9"
+                  ]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.localhost }}/api/roles/ce1dcb8c-0ca5-4a10-b0a9-2f8745a134ea"
+            name: Редактировать роль тест
+            meta:
+              id: req_d34c9e327637460e962d4daffe07f2b5
+              created: 1777214463564
+              modified: 1777214581873
+              isPrivate: false
+              description: ""
+              sortKey: -1776979657010.5
+            method: PATCH
+            body:
+              mimeType: application/json
+              text: |-
+                {
+
+                  "isActive": false,
+                  "moduleIds": [
+                    "e2e30f53-a2d5-4a2d-924e-f4215c28a2d2",
+                    "fd36417c-ff36-4471-b7d6-6297311679e9"
+                  ]
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/12.5.0
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_0e8cd4ece8b1eb0552743a6e62b55472c305b366
+    created: 1774216025089
+    modified: 1774216025089
+environments:
+  name: Base Environment
+  meta:
+    id: env_0e8cd4ece8b1eb0552743a6e62b55472c305b366
+    created: 1774216025088
+    modified: 1777221703663
+    isPrivate: false
+  data:
+    shift_id: ea0c59db-4e4a-4b96-baac-461f7a5582c4
+    report_id: 3eff7af1-d40a-423c-9365-761ad005fea8
+    localhost: http://localhost:8080
+    test_shift: 73d230ea-7714-47bb-8b2f-584e287fe8a2
+    test_report: ad757e71-9b24-4839-8a92-c475ebf50662
+    user_id: 1025389a-0e27-4e08-b6a0-b188660bea57
+    department_id: e7648a66-d84e-4e37-bfc5-7d760a6ecdd8
+    employee_for_edit: 90a9153e-1f5f-4f8c-a26f-41291c4e145c
+    admin7otd_id: 56d79006-412e-4a1a-ab42-da5509b64260
+    head_admin_id: 5f3381f0-eda8-407c-a7e2-bc0fb324d9b7
+    engineer_role_id: 3e67d907-8570-4902-939a-0903c632d7a9
+    test_role_id: e39392b1-4f2e-4ac8-a1ea-4811fa5e6ed9
+    super_admin_id: 5f3381f0-eda8-407c-a7e2-bc0fb324d9b7

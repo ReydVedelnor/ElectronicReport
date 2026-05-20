@@ -1,0 +1,131 @@
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: linear-gradient(180deg, #f4f6fa 0%, #eceff5 100%);
+}
+
+.login-card {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  padding: 88px 32px 30px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.login-logo-wrap {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  transform: translateX(-50%);
+}
+
+.login-logo-wrap img {
+  display: block;
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.login-title {
+  margin-bottom: 28px;
+}
+
+.title-green {
+  color: #2d8c49;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.title-blue {
+  color: var(--color-primary);
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-field {
+  position: relative;
+  text-align: left;
+}
+
+.login-field .ui-field__label {
+  margin-bottom: 6px;
+}
+
+.login-field .ui-input {
+  padding-left: 40px;
+  background: #f3f4f6;
+}
+
+.login-field__icon {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: 16px;
+  height: 16px;
+  opacity: 0.75;
+}
+
+.login-error {
+  margin-top: -2px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.login-button {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+}
+
+.btn-icon {
+  width: 16px;
+}
+
+.login-footer {
+  margin-top: 22px;
+  color: #777;
+  font-size: 11px;
+}
+
+@media (max-width: 480px) {
+  .login-wrapper {
+    padding: 24px;
+  }
+
+  .login-card {
+    padding: 82px 24px 28px;
+  }
+
+  .login-logo-wrap {
+    top: 16px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .login-logo-wrap img {
+    width: 54px;
+    height: 54px;
+  }
+}

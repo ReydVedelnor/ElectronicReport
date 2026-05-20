@@ -1,0 +1,233 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
+import { AppModal } from "~/components/app-modal";
+import { SvgIcon } from "~/components/svg-icon";
+import {
+  deleteTemplate,
+  getTemplate,
+  saveTemplate,
+  nextItemId,
+  type TemplateSection,
+  type TemplateItem,
+} from "../store/templates-store";
+
+const AREAS = ["Не присвоен", "№1", "№2", "№3", "№4", "№5", "№6", "№7", "№8"];
+
+export default function TemplateEditorPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const id = Number(searchParams.get("id"));
+  const isNew = searchParams.get("isNew") === "1";
+
+  const template = getTemplate(id);
+
+  const [area, setArea] = useState<string>(template?.area ?? "");
+  const [sections, setSections] = useState<TemplateSection[]>(template?.sections ?? []);
+  const [addForms, setAddForms] = useState<Record<number, { name: string; unit: string }>>({});
+  const [isBackConfirmOpen, setIsBackConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    if (!template) navigate("/templates");
+  }, [template, navigate]);
+
+  if (!template) return null;
+
+  function removeItem(sectionId: number, itemId: number) {
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id === sectionId
+          ? { ...section, items: section.items.filter((item) => item.id !== itemId) }
+          : section
+      )
+    );
+  }
+
+  function addItem(sectionId: number) {
+    const form = addForms[sectionId];
+    if (!form?.name.trim()) return;
+
+    const newItem: TemplateItem = {
+      id: nextItemId(),
+      name: form.name.trim(),
+      unit: form.unit.trim(),
+    };
+
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id === sectionId ? { ...section, items: [...section.items, newItem] } : section
+      )
+    );
+
+    setAddForms((prev) => ({
+      ...prev,
+      [sectionId]: { name: "", unit: "" },
+    }));
+  }
+
+  function updateAddForm(sectionId: number, field: "name" | "unit", value: string) {
+    setAddForms((prev) => ({
+      ...prev,
+      [sectionId]: {
+        ...prev[sectionId],
+        name: prev[sectionId]?.name ?? "",
+        unit: prev[sectionId]?.unit ?? "",
+        [field]: value,
+      },
+    }));
+  }
+
+  function addSection() {
+    const newId = Date.now();
+    setSections((prev) => [...prev, { id: newId, title: `Здание ${prev.length + 1}`, items: [] }]);
+  }
+
+  function saveCurrentTemplate() {
+    saveTemplate(id, area || null, sections);
+  }
+
+  function handleSave() {
+    saveCurrentTemplate();
+    navigate("/templates");
+  }
+
+  function handleBackClick() {
+    setIsBackConfirmOpen(true);
+  }
+
+  function handleBackSave() {
+    saveCurrentTemplate();
+    setIsBackConfirmOpen(false);
+    navigate("/templates");
+  }
+
+  function handleBackDiscard() {
+    if (isNew) {
+      deleteTemplate(id);
+    }
+
+    setIsBackConfirmOpen(false);
+    navigate("/templates");
+  }
+
+  function handleClear() {
+    setSections([]);
+    setArea("");
+    setAddForms({});
+  }
+
+  return (
+    <div className="tpl-editor">
+      <div className="tpl-editor__toolbar">
+        <button className="btn btn--ghost btn--icon tpl-editor__back" onClick={handleBackClick} title="Назад">
+          <SvgIcon name="back" />
+        </button>
+
+        <div className="ui-select-wrap tpl-editor__area-wrap">
+          <select className="ui-select tpl-editor__area-select" value={area} onChange={(e) => setArea(e.target.value)}>
+            <option value="">Выбрать назначение</option>
+            {AREAS.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+          <SvgIcon name="chevron-down" className="ui-select-wrap__icon" />
+        </div>
+
+        <div className="tpl-editor__toolbar-actions">
+          <button className="btn btn--success" onClick={handleSave}>
+            <SvgIcon name="save" />
+            Сохранить
+          </button>
+          <button className="btn btn--danger" onClick={handleClear}>
+            <SvgIcon name="delete" />
+            Очистить
+          </button>
+        </div>
+      </div>
+
+      <div className="tpl-editor__divider" />
+
+      <div className="tpl-editor__body">
+        <div className="tpl-editor__col-header">Наименование отчётной позиции</div>
+
+        {sections.map((section) => {
+          const form = addForms[section.id] ?? { name: "", unit: "" };
+
+          return (
+            <div key={section.id} className="tpl-section">
+              <div className="tpl-section__title">{section.title}</div>
+
+              {section.items.map((item, idx) => (
+                <div key={item.id} className="tpl-item">
+                  <span className="tpl-item__num">{idx + 1}</span>
+                  <span className="tpl-item__name">{item.name}</span>
+                  <button
+                    className="icon-btn icon-btn--delete tpl-item__remove"
+                    onClick={() => removeItem(section.id, item.id)}
+                    title="Удалить позицию"
+                  >
+                    <SvgIcon name="delete" />
+                  </button>
+                </div>
+              ))}
+
+              <div className="tpl-add">
+                <button className="tpl-add__toggle" onClick={() => updateAddForm(section.id, "name", form.name)}>
+                  <SvgIcon name="add" />
+                  Добавить новую позицию
+                </button>
+
+                <div className="tpl-add__form">
+                  <select className="ui-select tpl-add__type">
+                    <option>ввести вручную</option>
+                  </select>
+                  <input
+                    className="ui-input tpl-add__name"
+                    placeholder="Название позиции"
+                    value={form.name}
+                    onChange={(e) => updateAddForm(section.id, "name", e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addItem(section.id)}
+                  />
+                  <input
+                    className="ui-input tpl-add__unit"
+                    placeholder="Ед. изм / шт / м³ / ..."
+                    value={form.unit}
+                    onChange={(e) => updateAddForm(section.id, "unit", e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addItem(section.id)}
+                  />
+                  <button className="btn btn--success tpl-add__btn" onClick={() => addItem(section.id)}>
+                    Добавить
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        <button className="tpl-editor__add-section" onClick={addSection}>
+          <SvgIcon name="add" />
+          Добавить здание
+        </button>
+      </div>
+
+
+      <AppModal
+        open={isBackConfirmOpen}
+        title="Хотите сохранить шаблон?"
+        description="Перед выходом можно сохранить внесённые изменения."
+        onClose={() => setIsBackConfirmOpen(false)}
+        actions={
+          <>
+            <button type="button" className="btn btn--ghost" onClick={handleBackDiscard}>
+              Нет
+            </button>
+            <button type="button" className="btn btn--success" onClick={handleBackSave}>
+              Да
+            </button>
+          </>
+        }
+      />
+    </div>
+  );
+}

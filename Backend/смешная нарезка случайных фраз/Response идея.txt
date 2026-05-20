@@ -1,0 +1,63 @@
+Получить шаблон
+GET /api/shifts/{shiftId}/report-form
+
+
+{
+  "shiftId": "uuid",
+  "reportId": "uuid",
+  "templateId": "uuid",
+  "templateName": "Смена цеха 1",
+  "status": "not_ready",
+  "attributes": [
+    {
+      "attributeId": "uuid",
+      "name": "Общие показатели",
+      "nodeType": "section",
+      "sortOrder": 1,
+      "isRequired": false,
+      "isNumbered": true,
+      "displayStyle": "bold",
+      "dataType": null,
+      "unit": null,
+      "value": null
+    },
+    {
+      "attributeId": "uuid",
+      "name": "Температура",
+      "nodeType": "metric",
+      "sortOrder": 2,
+      "isRequired": true,
+      "isNumbered": false,
+      "displayStyle": "normal",
+      "dataType": "numeric",
+      "unit": "°C",
+      "value": "85.2"
+    }
+  ]
+}
+
+
+
+Записать скопом значения атрибутов
+PUT /api/reports/{reportId}/values
+
+
+{
+  "values": [
+    {
+      "attributeId": "uuid",
+      "value": "85.2"
+    },
+    {
+      "attributeId": "uuid",
+      "value": "Норма"
+    }
+  ],
+  "changedByUserId": "uuid",
+  "comment": "Первичное заполнение"
+}
+
+
+
+Завершить смену
+POST /api/shifts/{shiftId}/complete

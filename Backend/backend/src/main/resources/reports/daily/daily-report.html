@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Суточный рапорт</title>
+    <link rel="stylesheet" href="daily-report.css"/>
+</head>
+
+<body>
+<div class="page">
+
+    <div class="title">
+        <span th:text="${data.templateName}">
+            Рапорт начальнику цеха Х по участку № 7
+        </span>
+        <span> за сутки </span>
+        <span th:text="${data.reportDateText}">
+            01 сентября 2025 года
+        </span>
+    </div>
+
+    <div class="date" th:text="${data.generatedDateText}">
+        02.09.2025
+    </div>
+
+    <table class="report">
+        <colgroup>
+            <col class="col-name"/>
+            <col class="col-shift" th:each="shift : ${data.shifts}"/>
+        </colgroup>
+
+        <thead>
+        <tr class="header-row">
+            <th>Наименование отчетной позиции</th>
+
+            <th th:each="shift : ${data.shifts}">
+                <div class="shift-title" th:text="${shift.title}">
+                    1 смена
+                </div>
+                <div class="shift-time">
+                    «<span th:text="${shift.time}">07:00–15:30</span>»
+                </div>
+            </th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <th:block th:if="${data.groups != null and !#lists.isEmpty(data.groups)}">
+            <th:block th:each="group : ${data.groups}">
+                <tr class="section">
+                    <td th:colspan="${#lists.size(data.shifts) + 1}" th:text="${group.name}">
+                        Здание 1
+                    </td>
+                </tr>
+
+                <tr class="data-row" th:each="row : ${group.rows}">
+                    <td class="position-cell">
+                        <span
+                                class="position"
+                                th:classappend="${row.bold} ? ' position-bold' : ''">
+                            <span th:if="${row.number != null}" th:text="${row.number}">1</span>
+                            <span th:if="${row.number != null}"> </span>
+                            <span th:text="${row.name}">
+                                Количество принятых и переработанных растворов
+                            </span>
+                        </span>
+
+                        <br th:if="${row.numeric}"/>
+
+                        <span class="subtext" th:if="${row.numeric}">
+                            за смену / за месяц<span th:if="${row.unit != null and !#strings.isEmpty(row.unit)}">, <span th:text="${row.unit}">м3</span></span>
+                        </span>
+
+                        <span class="subtext" th:if="${!row.numeric and row.unit != null and !#strings.isEmpty(row.unit)}">
+                            <span th:text="${row.unit}">ед.</span>
+                        </span>
+                    </td>
+
+                    <td class="data" th:each="value : ${row.values}" th:text="${value}">
+                        -/-
+                    </td>
+                </tr>
+            </th:block>
+        </th:block>
+
+        <tr class="empty-row" th:if="${data.groups == null or #lists.isEmpty(data.groups)}">
+            <td th:colspan="${#lists.size(data.shifts) + 1}">
+                Для подразделения не найдено строк отчёта.
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <table class="signatures-report">
+        <tr>
+            <td class="left-signatures">
+                <div class="sign-title">Подписи:</div>
+
+                <table class="left-sign-table">
+                    <tr>
+                        <td class="sign-role">Сменный инженер-технолог</td>
+                        <td class="sign-line-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="sign-role">Начальник цеха</td>
+                        <td class="sign-line-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="sign-role">Технолог цеха</td>
+                        <td class="sign-line-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="sign-role chief-role">Начальник участка</td>
+                        <td></td>
+                    </tr>
+                </table>
+            </td>
+
+            <td class="right-signatures">
+                <table class="right-sign-table">
+                    <tr>
+                        <td colspan="3" class="right-sign-header">
+                            Подпись<br/>
+                            сменного инженера-технолога
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="right-sign-cell"></td>
+                        <td class="right-sign-cell"></td>
+                        <td class="right-sign-cell last"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div class="notes" th:if="${data.notes != null and !#lists.isEmpty(data.notes)}">
+        <div class="note" th:each="note : ${data.notes}" th:text="${note}">
+            *Примечание
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

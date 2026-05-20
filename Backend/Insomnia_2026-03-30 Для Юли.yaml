@@ -1,0 +1,156 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Atomix
+meta:
+  id: wrk_da8dca13b0d74ab1a47795e9b5f12f20
+  created: 1774216025087
+  modified: 1774379944028
+  description: ""
+collection:
+  - name: Production
+    meta:
+      id: fld_8b3d71f4963c44f983f718c1020e7d44
+      created: 1774379259779
+      modified: 1774379919166
+      sortKey: -1774379259780
+      description: ""
+    children:
+      - url: http://localhost:8080/api/shifts
+        name: Start shift
+        meta:
+          id: req_ee8692f925ea4204ae77131b588a05b3
+          created: 1774216025142
+          modified: 1774888024631
+          isPrivate: false
+          description: ""
+          sortKey: -1774379264774
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "departmentId": "e7648a66-d84e-4e37-bfc5-7d760a6ecdd8",
+              "scheduleId": "7d94106f-01ca-40ca-b260-3673c0f41c0a",
+              "engineerUserId": "1025389a-0e27-4e08-b6a0-b188660bea57",
+              "startedAt": "2026-03-22T07:00:00+05:00"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8080/api/shifts/{{ _.shift_id }}/report-form
+        name: Template by shift ID
+        meta:
+          id: req_aae993de3ade415094fbbc7ff21ec29e
+          created: 1774266128455
+          modified: 1774888025979
+          isPrivate: false
+          description: ""
+          sortKey: -1774379264724
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8080/api/reports/{{ _.report_id }}/values
+        name: Write values by report ID
+        meta:
+          id: req_912a9b2b2dec4569b02614d6531a09cd
+          created: 1774379893325
+          modified: 1774890320675
+          isPrivate: false
+          description: ""
+          sortKey: -1774379264674
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "changedByUserId": "1025389a-0e27-4e08-b6a0-b188660bea57",
+              "comment": "Перерасчет показателей",
+              "values": [
+                {
+                  "attributeId": "7b0ebbf2-cf8f-47ac-923b-2bda30dc1eb1",
+                  "value": "1000"
+                },
+            		{
+                  "attributeId": "f28188e3-fdb9-4d41-9a5a-2d3ff2730842",
+                  "value": "1010"
+                }
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8080/api/shifts/{{ _.shift_id }}/complete
+        name: Complete shift
+        meta:
+          id: req_e7972f212ed14913a69d7325bc4ad7da
+          created: 1774887928843
+          modified: 1774888020855
+          isPrivate: false
+          description: ""
+          sortKey: -1774379264374
+        method: POST
+        headers:
+          - name: User-Agent
+            value: insomnia/12.4.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_0e8cd4ece8b1eb0552743a6e62b55472c305b366
+    created: 1774216025089
+    modified: 1774216025089
+environments:
+  name: Base Environment
+  meta:
+    id: env_0e8cd4ece8b1eb0552743a6e62b55472c305b366
+    created: 1774216025088
+    modified: 1774380306995
+    isPrivate: false
+  data:
+    shift_id: 96554daf-3b3f-4967-844b-0245a2e72f78
+    report_id: fe238c96-baa2-470b-9245-ccd49439b800
+    localhost: http://localhost:8080
