@@ -1,3 +1,48 @@
+/* Фильтр сотрудников */
+.employees-filter-menu .ui-filter-menu__panel {
+  width: min(560px, calc(100vw - 40px));
+}
+
+.employees-filter-menu .ui-filter-menu__content {
+  min-width: 0;
+}
+
+
+.employees-filter-menu .ui-filter-sidebar,
+.employees-filter-menu .ui-filter-menu__sidebar,
+.employees-filter-menu .ui-filter-groups {
+  width: 180px;
+  flex: 0 0 180px;
+}
+
+.employees-filter-menu .filter-checkboxes {
+  gap: 6px;
+}
+
+.employees-filter-menu .filter-checkbox-label {
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.employees-filter-menu .filter-checkbox-label input[type="checkbox"] {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.employees-filter-menu__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.btn--small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Остальные стили */
 .employees-page {
   display: flex;
   flex-direction: column;
@@ -5,103 +50,44 @@
 }
 
 .employees-toolbar {
-  justify-content: space-between;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.employees-toolbar__group {
+.employees-toolbar__left {
   display: flex;
   align-items: center;
-}
-
-.employees-toolbar__group--main {
-  justify-content: flex-start;
-}
-
-.employees-toolbar__group--search {
-  justify-content: flex-end;
-  margin-left: auto;
-}
-
-.employees-search {
-  width: min(100%, 320px);
-}
-
-.employees-toolbar-meta {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.employees-card {
-  overflow: hidden;
-}
-
-.employees-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: 12px;
 }
 
-.employees-card__subtitle {
-  margin: 6px 0 0;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.employees-card__meta {
-  display: inline-flex;
+.employees-toolbar__right {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
-  font-size: 13px;
-  font-weight: 600;
+  gap: 12px;
 }
 
-.employees-table th:last-child,
-.employees-table td:last-child {
-  text-align: center;
-}
-
-.action-buttons {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+.employees-search {
+  width: 260px;
 }
 
 .role-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: var(--radius-full, 999px);
-  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
   background: transparent;
-  color: inherit;
+  color: #374151;
 }
 
-.role-active {
-  background: transparent;
-  color: inherit;
-  border: none;
-}
-
-.role-inactive {
-  background: var(--color-warning-soft, #fff7ed);
-  color: var(--color-warning, #ea580c);
-  border: 1px solid var(--color-warning-border, #fdba74);
-}
-
-.role-inactive::before {
-  content: "!";
-  font-weight: 700;
+.role-badge.role-inactive {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fed7aa;
 }
 
 .employee-number {
@@ -125,11 +111,6 @@
   font-weight: 600;
 }
 
-.status-badge .svg-icon {
-  width: 14px;
-  height: 14px;
-}
-
 .status-badge.status-active {
   background: #dcfce7;
   color: #166534;
@@ -140,258 +121,21 @@
   color: #991b1b;
 }
 
-.ui-search__action {
-  position: relative;
-}
-
-.filter-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
-  background: #ef4444;
-  border-radius: 50%;
-  border: 2px solid white;
-}
-
-.active-filter-chip {
+.action-buttons {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: #eff6ff;
-  border-radius: 20px;
-  font-size: 13px;
-  color: #1e40af;
-}
-
-.chip-icon,
-.chip-remove {
-  display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.chip-icon .svg-icon,
-.chip-remove .svg-icon {
-  width: 14px;
-  height: 14px;
-}
-
-.chip-remove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 4px;
-  color: #1e40af;
-}
-
-.chip-remove:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-/* Контейнер фильтров */
-.employees-filter-container {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  padding: 8px 0;
-  max-height: 65vh;
-  overflow-y: auto;
-}
-
-/* Секция фильтров */
-.filter-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.filter-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.filter-section-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  display: flex;
-  align-items: center;
   gap: 8px;
 }
 
-.filter-section-title::before {
-  content: "";
-  width: 4px;
-  height: 18px;
-  background: #2563eb;
-  border-radius: 2px;
+.icon-btn--activate {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
 }
 
-.filter-clear-btn {
-  font-size: 12px;
-  color: #6b7280;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.filter-clear-btn:hover {
-  background: #f3f4f6;
-  color: #ef4444;
-}
-
-/* Сетка для чекбоксов - карточки */
-.filter-checkboxes {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 4px;
-}
-
-/* Стиль чекбокса как карточка */
-.filter-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #4b5563;
-  padding: 12px 14px;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  position: relative;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-}
-
-.filter-checkbox-label:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.filter-checkbox-label.checked {
-  background: #eff6ff;
-  border-color: #2563eb;
-  color: #1d4ed8;
-}
-
-.filter-checkbox-label input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #2563eb;
-  margin: 0;
-  flex-shrink: 0;
-}
-
-.filter-checkbox-text {
-  flex: 1;
-  font-weight: 500;
-}
-
-.filter-checked-icon {
-  width: 16px;
-  height: 16px;
-  color: #2563eb;
-}
-
-.filter-empty-state {
-  padding: 32px;
-  text-align: center;
-  color: #9ca3af;
-  font-size: 13px;
-  background: #f9fafb;
-  border-radius: 12px;
-  border: 1px dashed #d1d5db;
-}
-
-/* Итог выбранных фильтров */
-.filter-summary {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 14px 16px;
-  border: 1px solid #e2e8f0;
-  margin-top: 8px;
-}
-
-.filter-summary-title {
-  font-size: 12px;
-  font-weight: 500;
-  color: #64748b;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.filter-summary-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.filter-summary-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  background: #e0e7ff;
-  color: #3730a3;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 500;
-  gap: 6px;
-}
-
-.filter-summary-badge::before {
-  content: "✓";
-  font-size: 10px;
-  font-weight: bold;
-}
-
-/* Стили для радио-кнопок в фильтрах */
-.filter-radios {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.filter-radio-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #4b5563;
-  padding: 10px 18px;
-  border-radius: 40px;
-  transition: all 0.2s ease;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-}
-
-.filter-radio-label:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.filter-radio-label.selected {
-  background: #eff6ff;
-  border-color: #2563eb;
-  color: #1d4ed8;
+.icon-btn--activate:hover {
+  background: #bbf7d0;
 }
 
 .filter-radio-label input[type="radio"] {
@@ -426,42 +170,22 @@
 }
 
 @media (max-width: 720px) {
-  .employees-toolbar {
+ .employees-toolbar {
+    flex-direction: column;
     align-items: stretch;
   }
-
-  .employees-toolbar__group,
-  .employees-toolbar__group--search {
+  
+  .employees-toolbar__left,
+  .employees-toolbar__right {
     width: 100%;
-    margin-left: 0;
   }
-
-  .employees-toolbar__group--main .btn,
+  
   .employees-search {
-    width: 100%;
+    flex: 1;
   }
 
-  .employees-card__header {
-    flex-direction: column;
-    align-items: stretch;
-  }
 
-  .employees-toolbar-meta {
-    justify-content: flex-start;
-  }
-  
-  /* Адаптация фильтров для мобильных */
-  .filter-checkboxes {
-    grid-template-columns: 1fr;
-    max-height: 250px;
-  }
-  
-  .filter-radios {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .filter-radio-label {
-    padding: 12px 16px;
+  .employees-filter-menu .ui-filter-menu__panel {
+    width: calc(100vw - 24px);
   }
 }

@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { AppModal } from "~/components/app-modal";
 import { SvgIcon } from "~/components/svg-icon";
 import { getApiBaseUrl, getStoredAuthUser } from "~/lib/auth";
-
-import { searchEmployees, type Employee } from "../components/employeeActions";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return null;
@@ -84,7 +82,7 @@ type EmployeeOverride = Partial<EmployeeViewModel> & {
 type SelectedFilters = {
   roleIds: string[];
   departmentIds: string[];
-  activity: string; // "all", "active", "inactive"
+  activity: string;
 };
 
 function getEmployeesApiUrl(filters: SelectedFilters, searchQuery: string = ""): string {
@@ -269,12 +267,6 @@ function saveHiddenEmployeeIds(value: string[]) {
   writeJson(LOCAL_HIDDEN_KEY, value);
 }
 
-function hideEmployee(userId: string) {
-  const hidden = new Set(getHiddenEmployeeIds());
-  hidden.add(userId);
-  saveHiddenEmployeeIds([...hidden]);
-}
-
 function mergeEmployees(apiEmployees: EmployeeViewModel[]): EmployeeViewModel[] {
   const hiddenIds = new Set(getHiddenEmployeeIds());
   const overrides = getEmployeeOverrides();
@@ -345,6 +337,29 @@ async function deactivateEmployee(employeeId: string, updatedByUserId: string): 
   }
 }
 
+async function activateEmployee(employeeId: string, updatedByUserId: string): Promise<void> {
+  const response = await fetch(`${getApiBaseUrl()}/api/employees/${employeeId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      updatedByUserId,
+      isActive: true,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    let errorMessage = `Ошибка активации сотрудника: ${response.status}`;
+    try {
+      const parsed = JSON.parse(text);
+      errorMessage = parsed.message || parsed.error || errorMessage;
+    } catch {
+      if (text) errorMessage = text;
+    }
+    throw new Error(errorMessage);
+  }
+}
+
 export default function EmployeesPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -358,14 +373,36 @@ export default function EmployeesPage() {
   const [departmentFilters, setDepartmentFilters] = useState<FilterDepartment[]>([]);
   const [activityOptions, setActivityOptions] = useState<Array<{ code: string; name: string }>>([]);
   
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeFilterSection, setActiveFilterSection] = useState<"activity" | "roles" | "departments">("activity");
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [deactivatingEmployee, setDeactivatingEmployee] = useState<EmployeeViewModel | null>(null);
   const [isDeactivating, setIsDeactivating] = useState(false);
+  const [activatingEmployee, setActivatingEmployee] = useState<EmployeeViewModel | null>(null);
+  const [isActivating, setIsActivating] = useState(false);
+
+  const filterRef = useRef<HTMLDivElement>(null);
 
   const hasActiveFilters = selectedFilters.roleIds.length > 0 || selectedFilters.departmentIds.length > 0 || selectedFilters.activity !== "all";
+
+  // Закрытие фильтра при клике вне
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+
+    if (isFilterOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isFilterOpen]);
 
   const loadFilterContext = async (signal?: AbortSignal) => {
     try {
@@ -413,14 +450,14 @@ export default function EmployeesPage() {
 
   const applyFilters = () => {
     setSelectedFilters(tempSelectedFilters);
-    setIsFilterModalOpen(false);
+    setIsFilterOpen(false);
   };
 
   const resetFilters = () => {
     const newFilters = { roleIds: [], departmentIds: [], activity: "all" };
     setSelectedFilters(newFilters);
     setTempSelectedFilters(newFilters);
-    setIsFilterModalOpen(false);
+    setIsFilterOpen(false);
   };
 
   const toggleTempRoleFilter = (roleId: string) => {
@@ -505,7 +542,6 @@ export default function EmployeesPage() {
       const authUser = getStoredAuthUser();
       await deactivateEmployee(deactivatingEmployee.userId, authUser?.userId || "");
       
-      // Удаляем сотрудника из списка после успешной деактивации
       setEmployees(prevEmployees => 
         prevEmployees.filter(emp => emp.userId !== deactivatingEmployee.userId)
       );
@@ -517,6 +553,26 @@ export default function EmployeesPage() {
       setIsError(true);
     } finally {
       setIsDeactivating(false);
+    }
+  };
+
+  const confirmActivate = async () => {
+    if (!activatingEmployee) return;
+    
+    try {
+      setIsActivating(true);
+      const authUser = getStoredAuthUser();
+      await activateEmployee(activatingEmployee.userId, authUser?.userId || "");
+      
+      await loadEmployees(selectedFilters, searchValue);
+      
+      setActivatingEmployee(null);
+    } catch (error) {
+      console.error("Ошибка активации сотрудника:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Не удалось активировать сотрудника");
+      setIsError(true);
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -545,38 +601,25 @@ export default function EmployeesPage() {
     });
   }, [employees]);
 
-  const getActiveFiltersLabel = () => {
-    const labels: string[] = [];
-    
-    selectedFilters.roleIds.forEach(roleId => {
-      const role = roleFilters.find(r => r.roleId === roleId);
-      if (role) labels.push(role.name);
-    });
-    
-    selectedFilters.departmentIds.forEach(deptId => {
-      const dept = departmentFilters.find(d => d.departmentId === deptId);
-      if (dept) labels.push(dept.name);
-    });
-    
-    if (selectedFilters.activity === "active") labels.push("Активные");
-    if (selectedFilters.activity === "inactive") labels.push("Неактивные");
-    
-    return labels.join(", ");
+  const getSelectedFiltersCount = () => {
+    let count = 0;
+    if (selectedFilters.activity !== "all") count++;
+    count += selectedFilters.roleIds.length;
+    count += selectedFilters.departmentIds.length;
+    return count;
   };
-
-  const activeFilterLabel = getActiveFiltersLabel();
 
   return (
     <div className="ui-page employees-page">
       <div className="ui-toolbar employees-toolbar">
-        <div className="ui-toolbar__group employees-toolbar__group employees-toolbar__group--main">
+        <div className="employees-toolbar__left">
           <button className="btn btn--primary" type="button" onClick={handleAddEmployee}>
             <SvgIcon name="add" />
             <span>Добавить сотрудника</span>
           </button>
         </div>
 
-        <div className="ui-toolbar__group employees-toolbar__group employees-toolbar__group--search">
+        <div className="employees-toolbar__right">
           <div className="ui-search employees-search">
             <span className="ui-search__icon">
               <SvgIcon name="search" />
@@ -588,40 +631,201 @@ export default function EmployeesPage() {
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
             />
+          </div>
+
+          <div className="ui-filter-menu employees-filter-menu" ref={filterRef}>
             <button
-              className="ui-search__action"
               type="button"
-              title="Открыть фильтр"
-              onClick={() => {
-                setTempSelectedFilters(selectedFilters);
-                setIsFilterModalOpen(true);
-              }}
+              className={`ui-filter-menu__trigger ${isFilterOpen ? "ui-filter-menu__trigger--open" : ""}`}
+              aria-haspopup="dialog"
+              aria-expanded={isFilterOpen}
+              aria-label="Открыть фильтры"
+              onClick={() => setIsFilterOpen((prev) => !prev)}
             >
-              <SvgIcon name="filter" />
-              {hasActiveFilters ? <span className="filter-badge" /> : null}
+              <span className="ui-filter-menu__trigger-icon">
+                <SvgIcon name="filter" />
+              </span>
+              <span>Фильтры</span>
+              {hasActiveFilters ? <span className="ui-filter-menu__counter">{getSelectedFiltersCount()}</span> : null}
+              <SvgIcon name="chevron-down" className="ui-filter-menu__trigger-chevron" />
             </button>
+
+            {isFilterOpen ? (
+              <div className="ui-filter-menu__panel" role="dialog" aria-label="Фильтр сотрудников">
+                <aside className="ui-filter-menu__sidebar" aria-label="Разделы фильтрации">
+                  <div className="ui-filter-menu__sidebar-title">Фильтры</div>
+                  <button
+                    type="button"
+                    className={`ui-filter-menu__section ${activeFilterSection === "activity" ? "ui-filter-menu__section--active" : ""}`}
+                    aria-current={activeFilterSection === "activity" ? "true" : undefined}
+                    onClick={() => setActiveFilterSection("activity")}
+                  >
+                    Статус сотрудника
+                  </button>
+                  {roleFilters.length > 0 ? (
+                    <button
+                      type="button"
+                      className={`ui-filter-menu__section ${activeFilterSection === "roles" ? "ui-filter-menu__section--active" : ""}`}
+                      aria-current={activeFilterSection === "roles" ? "true" : undefined}
+                      onClick={() => setActiveFilterSection("roles")}
+                    >
+                      Роли доступа
+                    </button>
+                  ) : null}
+                  {departmentFilters.length > 0 ? (
+                    <button
+                      type="button"
+                      className={`ui-filter-menu__section ${activeFilterSection === "departments" ? "ui-filter-menu__section--active" : ""}`}
+                      aria-current={activeFilterSection === "departments" ? "true" : undefined}
+                      onClick={() => setActiveFilterSection("departments")}
+                    >
+                      Подразделения
+                    </button>
+                  ) : null}
+                </aside>
+
+                <div className="ui-filter-menu__content">
+                  <div className="ui-filter-menu__content-head">
+                    <div className="ui-filter-menu__content-copy">
+                      <h3 className="ui-filter-menu__content-title">
+                        {activeFilterSection === "activity" ? "Статус сотрудника" : activeFilterSection === "roles" ? "Роли доступа" : "Подразделения"}
+                      </h3>
+                    </div>
+
+                    <button type="button" className="ui-filter-menu__reset" onClick={resetFilters}>
+                      Сбросить
+                    </button>
+                  </div>
+
+                  <div className="ui-filter-menu__options">
+                    {activeFilterSection === "activity" ? (
+                      [
+                        { value: "all", label: "Все сотрудники" },
+                        { value: "active", label: "Активные" },
+                        { value: "inactive", label: "Неактивные" },
+                      ].map((option) => {
+                        const isSelected = tempSelectedFilters.activity === option.value;
+
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            className={`ui-filter-menu__option ${isSelected ? "ui-filter-menu__option--active" : ""}`}
+                            onClick={() => setTempActivityFilter(option.value)}
+                          >
+                            <span className="ui-filter-menu__option-copy">
+                              <span className="ui-filter-menu__option-title">{option.label}</span>
+                            </span>
+                            <span className={`ui-filter-menu__option-mark ${isSelected ? "ui-filter-menu__option-mark--active" : ""}`}>
+                              {isSelected ? <SvgIcon name="check" /> : null}
+                            </span>
+                          </button>
+                        );
+                      })
+                    ) : activeFilterSection === "roles" ? (
+                      roleFilters.map((role) => {
+                        const isSelected = tempSelectedFilters.roleIds.includes(role.roleId);
+
+                        return (
+                          <button
+                            key={role.roleId}
+                            type="button"
+                            className={`ui-filter-menu__option ${isSelected ? "ui-filter-menu__option--active" : ""}`}
+                            onClick={() => toggleTempRoleFilter(role.roleId)}
+                          >
+                            <span className="ui-filter-menu__option-copy">
+                              <span className="ui-filter-menu__option-title">{role.name}</span>
+                            </span>
+                            <span className={`ui-filter-menu__option-mark ${isSelected ? "ui-filter-menu__option-mark--active" : ""}`}>
+                              {isSelected ? <SvgIcon name="check" /> : null}
+                            </span>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      departmentFilters.map((dept) => {
+                        const isSelected = tempSelectedFilters.departmentIds.includes(dept.departmentId);
+
+                        return (
+                          <button
+                            key={dept.departmentId}
+                            type="button"
+                            className={`ui-filter-menu__option ${isSelected ? "ui-filter-menu__option--active" : ""}`}
+                            onClick={() => toggleTempDepartmentFilter(dept.departmentId)}
+                          >
+                            <span className="ui-filter-menu__option-copy">
+                              <span className="ui-filter-menu__option-title">{dept.name}</span>
+                            </span>
+                            <span className={`ui-filter-menu__option-mark ${isSelected ? "ui-filter-menu__option-mark--active" : ""}`}>
+                              {isSelected ? <SvgIcon name="check" /> : null}
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className="employees-filter-menu__actions">
+                    <button type="button" className="btn btn--primary btn--small" onClick={applyFilters}>
+                      Применить
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
 
-      {hasActiveFilters ? (
-        <div className="employees-toolbar-meta">
-          <div className="active-filter-chip">
-            <span className="chip-icon">
-              <SvgIcon name="filter" />
-            </span>
-            <span>{activeFilterLabel}</span>
-            <button
-              className="chip-remove"
-              type="button"
-              onClick={resetFilters}
-              title="Сбросить фильтр"
-            >
-              <SvgIcon name="close" />
-            </button>
-          </div>
+      {/* Активные фильтры в виде чипов */}
+      {hasActiveFilters && (
+        <div className="ui-toolbar-meta">
+          {selectedFilters.activity !== "all" && (
+            <div className="ui-filter-chip">
+              <span className="ui-filter-chip__icon"><SvgIcon name="filter" /></span>
+              <span>{selectedFilters.activity === "active" ? "Активные" : "Неактивные"}</span>
+              <button className="ui-filter-chip__remove" type="button" onClick={() => {
+                setSelectedFilters(prev => ({ ...prev, activity: "all" }));
+                setTempSelectedFilters(prev => ({ ...prev, activity: "all" }));
+              }}>
+                <SvgIcon name="close" />
+              </button>
+            </div>
+          )}
+          
+          {selectedFilters.roleIds.map(roleId => {
+            const role = roleFilters.find(r => r.roleId === roleId);
+            return role ? (
+              <div className="ui-filter-chip" key={`role-${roleId}`}>
+                <span className="ui-filter-chip__icon"><SvgIcon name="filter" /></span>
+                <span>{role.name}</span>
+                <button className="ui-filter-chip__remove" type="button" onClick={() => {
+                  setSelectedFilters(prev => ({ ...prev, roleIds: prev.roleIds.filter(id => id !== roleId) }));
+                  setTempSelectedFilters(prev => ({ ...prev, roleIds: prev.roleIds.filter(id => id !== roleId) }));
+                }}>
+                  <SvgIcon name="close" />
+                </button>
+              </div>
+            ) : null;
+          })}
+          
+          {selectedFilters.departmentIds.map(deptId => {
+            const dept = departmentFilters.find(d => d.departmentId === deptId);
+            return dept ? (
+              <div className="ui-filter-chip" key={`dept-${deptId}`}>
+                <span className="ui-filter-chip__icon"><SvgIcon name="filter" /></span>
+                <span>{dept.name}</span>
+                <button className="ui-filter-chip__remove" type="button" onClick={() => {
+                  setSelectedFilters(prev => ({ ...prev, departmentIds: prev.departmentIds.filter(id => id !== deptId) }));
+                  setTempSelectedFilters(prev => ({ ...prev, departmentIds: prev.departmentIds.filter(id => id !== deptId) }));
+                }}>
+                  <SvgIcon name="close" />
+                </button>
+              </div>
+            ) : null;
+          })}
         </div>
-      ) : null}
+      )}
 
       <div className="ui-card employees-card">
         <div className="ui-card__header employees-card__header">
@@ -645,7 +849,6 @@ export default function EmployeesPage() {
                 <th>Действия</th>
               </tr>
             </thead>
-
             <tbody>
               {isLoading ? (
                 <tr>
@@ -663,14 +866,9 @@ export default function EmployeesPage() {
                     <td>{employee.firstName || "—"}</td>
                     <td>{employee.middleName || "—"}</td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className={`role-badge ${employee.roleIsActive ? 'role-active' : 'role-inactive'}`}>
-                          {employee.role || '—'}
-                        </span>
-                        {!employee.roleIsActive && (
-                          <span className="role-status-inactive-text">(неактивна)</span>
-                        )}
-                      </div>
+                      <span className={`role-badge ${!employee.roleIsActive ? 'role-inactive' : ''}`}>
+                        {employee.role || '—'}
+                      </span>
                     </td>
                     <td>{employee.department || "—"}</td>
                     <td className="status-cell">
@@ -685,14 +883,25 @@ export default function EmployeesPage() {
                           <SvgIcon name="edit" />
                         </button>
 
-                        <button 
-                          className="icon-btn icon-btn--delete" 
-                          onClick={() => setDeactivatingEmployee(employee)} 
-                          title="Деактивировать" 
-                          type="button"
-                        >
-                          <SvgIcon name="delete" />
-                        </button>
+                        {employee.isActive ? (
+                          <button 
+                            className="icon-btn icon-btn--deactivate" 
+                            onClick={() => setDeactivatingEmployee(employee)} 
+                            title="Деактивировать" 
+                            type="button"
+                          >
+                            <SvgIcon name="close" />
+                          </button>
+                        ) : (
+                          <button 
+                            className="icon-btn icon-btn--activate" 
+                            onClick={() => setActivatingEmployee(employee)} 
+                            title="Активировать" 
+                            type="button"
+                          >
+                            <SvgIcon name="check" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -706,106 +915,6 @@ export default function EmployeesPage() {
           </table>
         </div>
       </div>
-
-      {/* Модальное окно фильтров */}
-      <AppModal
-        open={isFilterModalOpen}
-        title="Фильтры"
-        onClose={() => setIsFilterModalOpen(false)}
-        actions={
-          <>
-            <button type="button" className="btn btn--ghost" onClick={resetFilters}>
-              Сбросить все
-            </button>
-            <button type="button" className="btn btn--secondary" onClick={() => setIsFilterModalOpen(false)}>
-              Отмена
-            </button>
-            <button type="button" className="btn btn--primary" onClick={applyFilters}>
-              Применить фильтры
-            </button>
-          </>
-        }
-      >
-        <div className="employees-filter-container">
-          {roleFilters.length > 0 && (
-            <div className="filter-section">
-              <h4 className="filter-section-title">Роли доступа</h4>
-              <div className="filter-checkboxes">
-                {roleFilters.map((role) => {
-                  const isChecked = tempSelectedFilters.roleIds.includes(role.roleId);
-                  return (
-                    <label key={role.roleId} className="filter-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleTempRoleFilter(role.roleId)}
-                      />
-                      <span>{role.name}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {departmentFilters.length > 0 && (
-            <div className="filter-section">
-              <h4 className="filter-section-title">Подразделения</h4>
-              <div className="filter-checkboxes">
-                {departmentFilters.map((dept) => {
-                  const isChecked = tempSelectedFilters.departmentIds.includes(dept.departmentId);
-                  return (
-                    <label key={dept.departmentId} className="filter-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleTempDepartmentFilter(dept.departmentId)}
-                      />
-                      <span>{dept.name}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className="filter-section">
-            <h4 className="filter-section-title">Статус сотрудника</h4>
-            <div className="filter-radios">
-              <label className="filter-radio-label">
-                <input
-                  type="radio"
-                  name="activity"
-                  value="all"
-                  checked={tempSelectedFilters.activity === "all"}
-                  onChange={() => setTempActivityFilter("all")}
-                />
-                <span>Все сотрудники</span>
-              </label>
-              <label className="filter-radio-label">
-                <input
-                  type="radio"
-                  name="activity"
-                  value="active"
-                  checked={tempSelectedFilters.activity === "active"}
-                  onChange={() => setTempActivityFilter("active")}
-                />
-                <span>Активные</span>
-              </label>
-              <label className="filter-radio-label">
-                <input
-                  type="radio"
-                  name="activity"
-                  value="inactive"
-                  checked={tempSelectedFilters.activity === "inactive"}
-                  onChange={() => setTempActivityFilter("inactive")}
-                />
-                <span>Неактивные</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </AppModal>
 
       {/* Модальное окно подтверждения деактивации */}
       <AppModal
@@ -825,6 +934,29 @@ export default function EmployeesPage() {
             </button>
             <button type="button" className="btn btn--danger" onClick={confirmDeactivate} disabled={isDeactivating}>
               {isDeactivating ? "Деактивация..." : "Деактивировать"}
+            </button>
+          </>
+        }
+      />
+
+      {/* Модальное окно подтверждения активации */}
+      <AppModal
+        open={Boolean(activatingEmployee)}
+        title="Подтвердите активацию"
+        description={
+          activatingEmployee
+            ? `Сотрудник «${activatingEmployee.fullName}» будет активирован и появится в списке активных сотрудников.`
+            : undefined
+        }
+        onClose={() => setActivatingEmployee(null)}
+        bodyAlign="center"
+        actions={
+          <>
+            <button type="button" className="btn btn--ghost" onClick={() => setActivatingEmployee(null)} disabled={isActivating}>
+              Отмена
+            </button>
+            <button type="button" className="btn btn--primary" onClick={confirmActivate} disabled={isActivating}>
+              {isActivating ? "Активация..." : "Активировать"}
             </button>
           </>
         }

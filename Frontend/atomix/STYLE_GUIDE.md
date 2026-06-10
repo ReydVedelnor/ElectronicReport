@@ -146,9 +146,6 @@
         <div className="ui-filter-menu__content-head">
           <div className="ui-filter-menu__content-copy">
             <h3 className="ui-filter-menu__content-title">Состояние</h3>
-            <p className="ui-filter-menu__content-description">
-              Выберите параметры фильтрации.
-            </p>
           </div>
 
           <button type="button" className="ui-filter-menu__reset">Сбросить</button>
@@ -158,16 +155,15 @@
           <button type="button" className="ui-filter-menu__option ui-filter-menu__option--active">
             <span className="ui-filter-menu__option-copy">
               <span className="ui-filter-menu__option-title">Все записи</span>
-              <span className="ui-filter-menu__option-description">Показывать все записи без ограничений</span>
             </span>
-            <span className="ui-filter-menu__option-mark"><SvgIcon name="check" /></span>
+            <span className="ui-filter-menu__option-mark ui-filter-menu__option-mark--active"><SvgIcon name="check" /></span>
           </button>
 
           <button type="button" className="ui-filter-menu__option">
             <span className="ui-filter-menu__option-copy">
               <span className="ui-filter-menu__option-title">Активные</span>
-              <span className="ui-filter-menu__option-description">Показывать только активные записи</span>
             </span>
+            <span className="ui-filter-menu__option-mark" />
           </button>
         </div>
       </div>

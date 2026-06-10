@@ -52,8 +52,18 @@ export type BackendEmployeeItem = {
   active?: boolean;
 };
 
+type BackendModuleItem = {
+  moduleId?: string;
+  id?: string;
+  slug?: string;
+  moduleSlug?: string;
+  isActive?: boolean;
+  active?: boolean;
+};
+
 type BackendListResponse<T> = {
   items?: T[];
+  modules?: T[];
   roles?: T[];
   data?: T[];
   content?: T[];
@@ -255,14 +265,32 @@ export async function tryRequests<T>(requests: Array<() => Promise<T>>): Promise
   throw lastError instanceof Error ? lastError : new Error("Не удалось выполнить запрос.");
 }
 
-async function fetchModuleIdsBySlug(): Promise<Record<string, string>> {
+function isModuleActive(moduleItem: BackendModuleItem): boolean {
+  return moduleItem.isActive !== false && moduleItem.active !== false;
+}
+
+async function fetchRoleCreateContextModules(): Promise<BackendModuleItem[]> {
   const payload = await requestJson<unknown>(`/api/roles/create-context`);
-  const modules = asArray<{ moduleId?: string; id?: string; slug?: string; moduleSlug?: string }>(payload, [
+
+  return asArray<BackendModuleItem>(payload, [
     "modules",
     "items",
     "data",
     "content"
-  ]);
+  ]).filter(isModuleActive);
+}
+
+export async function fetchActivePermissionIdsFromApi(): Promise<string[]> {
+  const modules = await fetchRoleCreateContextModules();
+  const moduleSlugs = modules
+    .map((moduleItem) => String(moduleItem.slug ?? moduleItem.moduleSlug ?? "").trim())
+    .filter(Boolean);
+
+  return mapModuleSlugsToPermissionIds(moduleSlugs);
+}
+
+async function fetchModuleIdsBySlug(): Promise<Record<string, string>> {
+  const modules = await fetchRoleCreateContextModules();
 
   return modules.reduce<Record<string, string>>((acc, moduleItem) => {
     const slug = String(moduleItem.slug ?? moduleItem.moduleSlug ?? "").trim();

@@ -514,7 +514,6 @@ export default function EnterpriseStructurePage(): React.ReactElement {
 
       {isUsingFallback && !isLoading && !errorMessage ? (
         <div className="enterprise-structure-note">
-          Отдельного API для структуры предприятия нет, поэтому страница использует доступный контекст подразделений сотрудников и локальную логику создания.
         </div>
       ) : null}
 
@@ -523,7 +522,6 @@ export default function EnterpriseStructurePage(): React.ReactElement {
           <div>
             <h2 className="ui-card__title">Список подразделений</h2>
             <p className="enterprise-structure-card__hint">
-              Новые цеха и участки сохраняются в localStorage браузера до появления API создания подразделений.
             </p>
           </div>
         </div>

@@ -8,17 +8,16 @@ import {
   mapModuleSlugsToPermissionIds,
   permissionsCatalog,
   togglePermission,
+  type PermissionItem,
   type RoleItem
 } from "../components/roleActions";
 import {
-  activateRoleOnApi,
   createRoleOnApi,
-  deactivateRoleOnApi,
+  fetchActivePermissionIdsFromApi,
   fetchEmployeesFromApi,
   fetchRoleFromApi,
   hasPermissionChanges,
   normalizeRoleName,
-  updateRoleInCache,
   updateRoleOnApi,
   type EmployeeRecord
 } from "../components/roleApi";
@@ -57,6 +56,13 @@ function cloneRole(role: RoleItem): RoleItem {
     ...role,
     permissions: [...role.permissions],
     participantIds: [...role.participantIds]
+  };
+}
+
+function filterRolePermissionsByAvailable(role: RoleItem, availablePermissionIds: Set<string>): RoleItem {
+  return {
+    ...role,
+    permissions: role.permissions.filter((permissionId) => availablePermissionIds.has(permissionId))
   };
 }
 
@@ -119,11 +125,11 @@ export default function RoleSystemEditorPage() {
 
   const [sourceRole, setSourceRole] = useState<RoleItem | null>(null);
   const [draftRole, setDraftRole] = useState<RoleItem | null>(isCreateMode ? createEmptyDraftRole() : null);
+  const [availablePermissions, setAvailablePermissions] = useState<PermissionItem[]>(permissionsCatalog);
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingRole, setIsSavingRole] = useState(false);
-  const [isChangingRoleActivity, setIsChangingRoleActivity] = useState(false);
   const [showUnsavedExitModal, setShowUnsavedExitModal] = useState(false);
   const [pendingExit, setPendingExit] = useState<PendingExit | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -151,26 +157,41 @@ export default function RoleSystemEditorPage() {
       setIsLoading(true);
       setErrorMessage("");
 
-      const [apiEmployees, apiRole] = await Promise.all([
+      const [apiEmployees, apiRole, activePermissionIds] = await Promise.all([
         fetchEmployeesFromApi(authUser.userId),
-        isCreateMode || !roleId ? Promise.resolve(null) : fetchRoleFromApi(roleId)
+        isCreateMode || !roleId ? Promise.resolve(null) : fetchRoleFromApi(roleId),
+        fetchActivePermissionIdsFromApi()
       ]);
+
+      const activePermissionIdSet = new Set(activePermissionIds);
+      const nextAvailablePermissions = permissionsCatalog.filter((permission) =>
+        activePermissionIdSet.has(permission.id)
+      );
+      const activeCurrentRolePermissions = currentRolePermissions.filter((permissionId) =>
+        activePermissionIdSet.has(permissionId)
+      );
 
       const preparedRole = apiRole
         ? hydrateRolesWithParticipants([
-            apiRole.permissions.length > 0 || currentRolePermissions.length === 0
+            apiRole.permissions.length > 0 || activeCurrentRolePermissions.length === 0
               ? apiRole
               : {
                   ...apiRole,
-                  permissions: currentRolePermissions,
+                  permissions: activeCurrentRolePermissions,
                   permissionsConfigured: true
                 }
           ], apiEmployees)[0]
         : hydrateRolesWithParticipants([createEmptyDraftRole()], apiEmployees)[0];
 
+      const preparedRoleWithOnlyActivePermissions = filterRolePermissionsByAvailable(
+        preparedRole,
+        activePermissionIdSet
+      );
+
+      setAvailablePermissions(nextAvailablePermissions);
       setEmployees(apiEmployees);
-      setSourceRole(apiRole ? cloneRole(preparedRole) : null);
-      setDraftRole(cloneRole(preparedRole));
+      setSourceRole(apiRole ? cloneRole(preparedRoleWithOnlyActivePermissions) : null);
+      setDraftRole(cloneRole(preparedRoleWithOnlyActivePermissions));
     } catch (error) {
       console.error("Ошибка загрузки роли:", error);
       setSourceRole(null);
@@ -270,36 +291,6 @@ export default function RoleSystemEditorPage() {
     setDraftRole((prev) => (prev ? { ...prev, name: trimmedName } : prev));
   };
 
-  const handleToggleRoleActivity = async () => {
-    if (!draftRole || isCreateMode) return;
-
-    const roleId = getRoleKey(draftRole);
-    if (!roleId) return;
-
-    const nextIsActive = draftRole.isActive === false;
-    const roleName = draftRole.name || "Без названия";
-    const actionLabel = nextIsActive ? "Активировать" : "Деактивировать";
-    const confirmed = window.confirm(`${actionLabel} роль "${roleName}"?`);
-    if (!confirmed) return;
-
-    try {
-      setIsChangingRoleActivity(true);
-      if (nextIsActive) {
-        await activateRoleOnApi(roleId);
-      } else {
-        await deactivateRoleOnApi(roleId);
-      }
-
-      updateRoleInCache(roleId, { isActive: nextIsActive });
-      showToast(nextIsActive ? "Роль активирована." : "Роль деактивирована.");
-      navigate("/role-system");
-    } catch (error) {
-      console.error("Ошибка изменения состояния роли:", error);
-      showToast(error instanceof Error ? error.message : "Не удалось изменить состояние роли.", "info");
-    } finally {
-      setIsChangingRoleActivity(false);
-    }
-  };
 
   const handleTogglePermission = (permissionId: string) => {
     setDraftRole((prev) => {
@@ -450,27 +441,7 @@ export default function RoleSystemEditorPage() {
             <span>{isSavingRole ? "Сохранение..." : "Сохранить"}</span>
           </button>
 
-          {!isCreateMode && (
-            <button
-              type="button"
-              className={`role-system-header-btn ${
-                draftRole.isActive === false ? "role-system-header-btn--activate" : "role-system-header-btn--deactivate"
-              }`}
-              onClick={handleToggleRoleActivity}
-              disabled={isSavingRole || isChangingRoleActivity}
-            >
-              <SvgIcon name={draftRole.isActive === false ? "check" : "close"} />
-              <span>
-                {draftRole.isActive === false
-                  ? isChangingRoleActivity
-                    ? "Активация..."
-                    : "Активировать"
-                  : isChangingRoleActivity
-                    ? "Деактивация..."
-                    : "Деактивировать"}
-              </span>
-            </button>
-          )}
+          
         </div>
       </div>
 
@@ -488,29 +459,37 @@ export default function RoleSystemEditorPage() {
           <div className="role-system-table-wrap">
             <table className="role-system-table role-system-table--permissions">
               <tbody>
-                {permissionsCatalog.map((permission) => {
-                  const isActive = draftRole.permissions.includes(permission.id);
+                {availablePermissions.length > 0 ? (
+                  availablePermissions.map((permission) => {
+                    const isActive = draftRole.permissions.includes(permission.id);
 
-                  return (
-                    <tr key={permission.id}>
-                      <td className="role-system-table__text-cell">
-                        <div className="role-system-permission-cell">
-                          <div className="role-system-permission-cell__title">{permission.label}</div>
-                        </div>
-                      </td>
-                      <td className="role-system-table__action-cell">
-                        <button
-                          type="button"
-                          className={`role-system-check ${isActive ? "is-active" : ""}`}
-                          onClick={() => handleTogglePermission(permission.id)}
-                          title={isActive ? "Отключить доступ" : "Включить доступ"}
-                        >
-                          <SvgIcon name="check" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                    return (
+                      <tr key={permission.id}>
+                        <td className="role-system-table__text-cell">
+                          <div className="role-system-permission-cell">
+                            <div className="role-system-permission-cell__title">{permission.label}</div>
+                          </div>
+                        </td>
+                        <td className="role-system-table__action-cell">
+                          <button
+                            type="button"
+                            className={`role-system-check ${isActive ? "is-active" : ""}`}
+                            onClick={() => handleTogglePermission(permission.id)}
+                            title={isActive ? "Отключить доступ" : "Включить доступ"}
+                          >
+                            <SvgIcon name="check" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td className="role-system-table__text-cell" colSpan={2}>
+                      <div className="role-system-empty-note">Нет активных страниц для настройки прав.</div>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

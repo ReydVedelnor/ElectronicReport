@@ -242,6 +242,12 @@
   font-weight: 600;
 }
 
+.reports-list-table__empty {
+  height: 220px;
+  text-align: center !important;
+  vertical-align: middle;
+}
+
 .reports-department-cell {
   display: flex;
   flex-direction: column;

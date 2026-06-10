@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
+import { AppModal } from "~/components/app-modal";
 import { SvgIcon } from "~/components/svg-icon";
 import { duplicateRole, getRoleParticipantsCount, mapModuleSlugsToPermissionIds, type RoleItem } from "../components/roleActions";
 import {
@@ -23,10 +24,19 @@ type ToastState = {
 
 type ActivityFilterValue = "all" | "true" | "false";
 
-const ACTIVITY_FILTER_OPTIONS: Array<{ value: ActivityFilterValue; label: string; description: string }> = [
-  { value: "all", label: "Все роли", description: "Показывать активные и деактивированные роли" },
-  { value: "true", label: "Активные", description: "Показывать только активные роли" },
-  { value: "false", label: "Деактивированные", description: "Показывать только деактивированные роли" }
+type RoleConfirmAction = "activate" | "deactivate" | "copy";
+
+type RoleConfirmState = {
+  action: RoleConfirmAction;
+  role: RoleItem;
+} | null;
+
+const DEFAULT_ACTIVITY_FILTER: ActivityFilterValue = "true";
+
+const ACTIVITY_FILTER_OPTIONS: Array<{ value: ActivityFilterValue; label: string }> = [
+  { value: "all", label: "Все роли" },
+  { value: "true", label: "Активные" },
+  { value: "false", label: "Деактивированные" }
 ];
 
 export default function RoleSystemPage() {
@@ -43,12 +53,13 @@ export default function RoleSystemPage() {
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
   const [searchValue, setSearchValue] = useState("");
-  const [activityFilter, setActivityFilter] = useState<ActivityFilterValue>("all");
+  const [activityFilter, setActivityFilter] = useState<ActivityFilterValue>(DEFAULT_ACTIVITY_FILTER);
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingRole, setIsSavingRole] = useState(false);
   const [changingActivityRoleId, setChangingActivityRoleId] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<RoleConfirmState>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   const currentRolePermissions = useMemo(
@@ -167,10 +178,9 @@ export default function RoleSystemPage() {
     });
   }, [roles, searchValue, activityFilter]);
 
-  const activeFilterLabel =
-    ACTIVITY_FILTER_OPTIONS.find((option) => option.value === activityFilter && option.value !== "all")?.label ?? "";
+  const activeFilterLabel = ACTIVITY_FILTER_OPTIONS.find((option) => option.value === activityFilter)?.label ?? "";
 
-  const hasActiveFilters = activityFilter !== "all";
+  const hasActiveFilters = Boolean(activeFilterLabel);
 
   if (shouldOpenEditor) {
     return <RoleSystemEditorPage />;
@@ -180,16 +190,12 @@ export default function RoleSystemPage() {
     navigate("/role-system?mode=new");
   };
 
-  const handleToggleRoleActivity = async (role: RoleItem) => {
+  const executeToggleRoleActivity = async (role: RoleItem) => {
     const roleId = role.backendRoleId ?? role.id;
     if (!roleId) return;
 
     const isRoleInactive = role.isActive === false;
     const nextIsActive = isRoleInactive;
-    const roleName = role.name || "Без названия";
-    const actionLabel = nextIsActive ? "Активировать" : "Деактивировать";
-    const confirmed = window.confirm(`${actionLabel} роль "${roleName}"?`);
-    if (!confirmed) return;
 
     try {
       setChangingActivityRoleId(roleId);
@@ -213,7 +219,7 @@ export default function RoleSystemPage() {
     }
   };
 
-  const handleDuplicateRole = async (roleId: string) => {
+  const executeDuplicateRole = async (roleId: string) => {
     const sourceRole = roles.find((role) => role.id === roleId);
     if (!sourceRole) return;
 
@@ -240,13 +246,39 @@ export default function RoleSystemPage() {
     }
   };
 
+  const requestToggleRoleActivity = (role: RoleItem) => {
+    setConfirmAction({ action: role.isActive === false ? "activate" : "deactivate", role });
+  };
+
+  const requestDuplicateRole = (role: RoleItem) => {
+    setConfirmAction({ action: "copy", role });
+  };
+
+  const closeConfirmModal = () => {
+    if (changingActivityRoleId || isSavingRole) return;
+    setConfirmAction(null);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return;
+
+    const { action, role } = confirmAction;
+
+    if (action === "copy") {
+      await executeDuplicateRole(role.id);
+    } else {
+      await executeToggleRoleActivity(role);
+    }
+
+    setConfirmAction(null);
+  };
+
   const applyActivityFilter = (value: ActivityFilterValue) => {
     setActivityFilter(value);
-    setIsFilterMenuOpen(false);
   };
 
   const resetFilters = () => {
-    setActivityFilter("all");
+    setActivityFilter(DEFAULT_ACTIVITY_FILTER);
     setIsFilterMenuOpen(false);
   };
 
@@ -326,13 +358,10 @@ export default function RoleSystemPage() {
                       >
                         <span className="ui-filter-menu__option-copy">
                           <span className="ui-filter-menu__option-title">{option.label}</span>
-                          <span className="ui-filter-menu__option-description">{option.description}</span>
                         </span>
-                        {isSelected ? (
-                          <span className="ui-filter-menu__option-mark">
-                            <SvgIcon name="check" />
-                          </span>
-                        ) : null}
+                        <span className={`ui-filter-menu__option-mark ${isSelected ? "ui-filter-menu__option-mark--active" : ""}`}>
+                          {isSelected ? <SvgIcon name="check" /> : null}
+                        </span>
                       </button>
                     );
                   })}
@@ -355,7 +384,7 @@ export default function RoleSystemPage() {
               className="ui-filter-chip__remove"
               title="Сбросить фильтр"
               aria-label="Сбросить фильтр"
-              onClick={() => setActivityFilter("all")}
+              onClick={() => setActivityFilter(DEFAULT_ACTIVITY_FILTER)}
             >
               <SvgIcon name="close" />
             </button>
@@ -426,7 +455,7 @@ export default function RoleSystemPage() {
                             }`}
                             title={isRoleInactive ? "Активировать" : "Деактивировать"}
                             aria-label={isRoleInactive ? "Активировать роль" : "Деактивировать роль"}
-                            onClick={() => handleToggleRoleActivity(role)}
+                            onClick={() => requestToggleRoleActivity(role)}
                             disabled={isRoleActivityChanging || isSavingRole}
                           >
                             <SvgIcon name={isRoleInactive ? "check" : "close"} />
@@ -436,7 +465,7 @@ export default function RoleSystemPage() {
                             type="button"
                             className="icon-btn role-system-action-btn role-system-action-btn--copy"
                             title="Копировать роль"
-                            onClick={() => handleDuplicateRole(role.id)}
+                            onClick={() => requestDuplicateRole(role)}
                             disabled={isSavingRole}
                           >
                             <SvgIcon name="copy" />
@@ -457,6 +486,48 @@ export default function RoleSystemPage() {
           </table>
         </div>
       </section>
+
+
+      <AppModal
+        open={Boolean(confirmAction)}
+        title={
+          confirmAction?.action === "activate"
+            ? "Активировать роль"
+            : confirmAction?.action === "deactivate"
+              ? "Деактивировать роль"
+              : "Скопировать роль"
+        }
+        description={
+          confirmAction
+            ? confirmAction.action === "copy"
+              ? `Создать копию роли «${confirmAction.role.name || "Без названия"}»?`
+              : confirmAction.action === "activate"
+                ? `Роль «${confirmAction.role.name || "Без названия"}» снова станет доступна для назначения сотрудникам.`
+                : `Роль «${confirmAction.role.name || "Без названия"}» будет деактивирована и не будет доступна для назначения сотрудникам.`
+            : undefined
+        }
+        onClose={closeConfirmModal}
+        closeOnOverlayClick
+        actions={
+          <>
+            <button type="button" className="btn btn--ghost" onClick={closeConfirmModal} disabled={isSavingRole || Boolean(changingActivityRoleId)}>
+              Отмена
+            </button>
+            <button
+              type="button"
+              className={`btn ${confirmAction?.action === "deactivate" ? "btn--danger" : "btn--primary"}`}
+              onClick={handleConfirmAction}
+              disabled={isSavingRole || Boolean(changingActivityRoleId)}
+            >
+              {confirmAction?.action === "activate"
+                ? "Активировать"
+                : confirmAction?.action === "deactivate"
+                  ? "Деактивировать"
+                  : "Скопировать"}
+            </button>
+          </>
+        }
+      />
 
       {toast ? (
         <div className={`role-system-toast role-system-toast--${toast.type}`}>{toast.message}</div>

@@ -110,52 +110,6 @@ type SaveReportValuesResponse = {
   savedCount: number;
 };
 
-type ReportPeriodColumnResponse = {
-  columnKey: string;
-  date: string;
-  scheduleId?: string | null;
-  scheduleName?: string | null;
-  shiftLabel?: string | null;
-  timeLabel?: string | null;
-  columnStatus?: string | null;
-  startedAt?: string | null;
-  endedAt?: string | null;
-  shiftId?: string | null;
-  reportId?: string | null;
-};
-
-type ReportPeriodCellResponse = {
-  attributeValueId?: string | null;
-  value?: string | null;
-  changedAt?: string | null;
-  reportId?: string | null;
-  shiftId?: string | null;
-};
-
-type ReportPeriodRowResponse = {
-  rowKey: string;
-  attributeId: string;
-  name: string;
-  nodeType?: string | null;
-  sortOrder?: number | null;
-  isNumbered?: boolean | null;
-  displayStyle?: string | null;
-  dataType?: string | null;
-  unit?: string | null;
-  values?: Record<string, ReportPeriodCellResponse | null>;
-};
-
-type ReportPeriodTableResponse = {
-  departmentId: string;
-  departmentName: string;
-  period: {
-    dateFrom: string;
-    dateTo: string;
-  };
-  columns: ReportPeriodColumnResponse[];
-  rows: ReportPeriodRowResponse[];
-};
-
 type ReportValues = Record<string, string>;
 
 type ReportTableRow = ReportFormItemResponse & {
@@ -257,44 +211,43 @@ function formatScheduleRange(schedule?: ShiftStartScheduleItem | null): string {
   return `${start} – ${end}`;
 }
 
-function addDaysToIsoDate(isoDate: string, days: number): string {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
+const PREVIOUS_SHIFT_STORAGE_PREFIX = "atomix.dashboard.previousShift.";
+
+function getPreviousShiftStorageKey(shiftId: string): string {
+  return `${PREVIOUS_SHIFT_STORAGE_PREFIX}${shiftId}`;
 }
 
-function findPreviousShiftColumn(
-  columns: ReportPeriodColumnResponse[],
-  currentShiftId?: string | null,
-  currentStartedAt?: string | null,
-): ReportPeriodColumnResponse | null {
-  const currentStartedAtMs = currentStartedAt
-    ? new Date(currentStartedAt).getTime()
-    : Number.POSITIVE_INFINITY;
+function readStoredPreviousShiftId(shiftId?: string | null): string | null {
+  if (!shiftId || typeof window === "undefined") return null;
 
-  const previousColumns = columns
-    .filter(
-      (column) =>
-        column.columnStatus === "HAS_SHIFT" &&
-        column.shiftId &&
-        column.reportId,
-    )
-    .filter((column) => column.shiftId !== currentShiftId)
-    .map((column) => ({
-      column,
-      startedAtMs: column.startedAt
-        ? new Date(column.startedAt).getTime()
-        : Number.NEGATIVE_INFINITY,
-    }))
-    .filter(
-      (entry) =>
-        Number.isFinite(entry.startedAtMs) &&
-        entry.startedAtMs < currentStartedAtMs,
-    )
-    .sort((a, b) => b.startedAtMs - a.startedAtMs);
+  try {
+    return window.localStorage.getItem(getPreviousShiftStorageKey(shiftId));
+  } catch {
+    return null;
+  }
+}
 
-  return previousColumns[0]?.column ?? null;
+function saveStoredPreviousShiftId(
+  shiftId?: string | null,
+  previousShiftId?: string | null,
+): void {
+  if (!shiftId || typeof window === "undefined") return;
+
+  try {
+    const key = getPreviousShiftStorageKey(shiftId);
+
+    if (previousShiftId) {
+      window.localStorage.setItem(key, previousShiftId);
+    } else {
+      window.localStorage.removeItem(key);
+    }
+  } catch {
+    // Если localStorage недоступен, копирование просто не будет восстановлено после перезагрузки.
+  }
+}
+
+function isMetricReportItem(item: ReportFormItemResponse): boolean {
+  return item.nodeType?.toLowerCase() === "metric";
 }
 
 function getReportFormAttributes(
@@ -312,22 +265,23 @@ function getReportFormAttributes(
     );
 }
 
-function buildCopiedReportValues(
-  reportForm: ShiftReportFormResponse,
-  rows: ReportPeriodRowResponse[],
-  columnKey: string,
+function buildCopiedReportValuesFromShiftForm(
+  currentReportForm: ShiftReportFormResponse,
+  sourceReportForm: ShiftReportFormResponse,
 ): ReportValues {
-  const valueByAttributeId = rows.reduce<Record<string, string>>((acc, row) => {
-    if (row.nodeType === "metric") {
-      acc[row.attributeId] = row.values?.[columnKey]?.value ?? "";
+  const sourceValuesByAttributeId = getReportFormAttributes(
+    sourceReportForm,
+  ).reduce<Record<string, string>>((acc, item) => {
+    if (isMetricReportItem(item)) {
+      acc[item.attributeId] = item.value ?? "";
     }
     return acc;
   }, {});
 
-  return getReportFormAttributes(reportForm).reduce<ReportValues>(
+  return getReportFormAttributes(currentReportForm).reduce<ReportValues>(
     (acc, item) => {
-      if (item.nodeType === "metric") {
-        acc[item.attributeId] = valueByAttributeId[item.attributeId] ?? "";
+      if (isMetricReportItem(item)) {
+        acc[item.attributeId] = sourceValuesByAttributeId[item.attributeId] ?? "";
       }
       return acc;
     },
@@ -428,6 +382,17 @@ function getDefaultScheduleId(schedules: ShiftStartScheduleItem[]): string {
   });
 
   return matchingSchedule?.scheduleId ?? schedules[0].scheduleId;
+}
+
+function canStartScheduleNow(schedule?: ShiftStartScheduleItem | null): boolean {
+  const endMinutes = getMinutesFromTimeString(schedule?.endTime);
+
+  if (endMinutes === null) return true;
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  return currentMinutes < endMinutes;
 }
 
 function findScheduleById(
@@ -546,6 +511,9 @@ export default function DashboardPage(): React.ReactElement {
   const [savedReportValues, setSavedReportValues] = useState<ReportValues>({});
   const [previousShiftValues, setPreviousShiftValues] =
     useState<ReportValues | null>(null);
+  const [previousShiftSourceId, setPreviousShiftSourceId] = useState<
+    string | null
+  >(null);
   const [selectedScheduleId, setSelectedScheduleId] = useState("");
   const [isStartShiftModalOpen, setIsStartShiftModalOpen] = useState(false);
   const [isFinishConfirmOpen, setIsFinishConfirmOpen] = useState(false);
@@ -607,12 +575,16 @@ export default function DashboardPage(): React.ReactElement {
         currentWorkspace.workspaceStatus === "ACTIVE_SHIFT" &&
         currentWorkspace.shift?.shiftId
       ) {
+        setPreviousShiftSourceId(
+          readStoredPreviousShiftId(currentWorkspace.shift.shiftId),
+        );
         await loadReportForm(currentWorkspace.shift.shiftId);
       } else {
         setReportForm(null);
         setReportValues({});
         setSavedReportValues({});
         setPreviousShiftValues(null);
+        setPreviousShiftSourceId(null);
 
         if (
           currentWorkspace.workspaceStatus === "AUTO_CLOSED_SHIFT" &&
@@ -632,6 +604,7 @@ export default function DashboardPage(): React.ReactElement {
       setReportValues({});
       setSavedReportValues({});
       setPreviousShiftValues(null);
+      setPreviousShiftSourceId(null);
     } finally {
       setIsInitialLoading(false);
     }
@@ -672,6 +645,7 @@ export default function DashboardPage(): React.ReactElement {
     availableSchedules,
     selectedScheduleId,
   );
+  const isSelectedScheduleStartAvailable = canStartScheduleNow(selectedSchedule);
   const hasStartedShift = Boolean(activeShift);
   const hasActiveShift = Boolean(activeShift && reportForm);
   const isShiftStateLoading =
@@ -700,51 +674,27 @@ export default function DashboardPage(): React.ReactElement {
   };
 
   const loadPreviousShiftValues = useCallback(async (): Promise<void> => {
-    if (!activeShift?.departmentId || !activeShift?.startedAt || !reportForm) {
+    if (!previousShiftSourceId || !reportForm) {
       setPreviousShiftValues(null);
       return;
     }
 
-    const shiftDate = activeShift.startedAt.slice(0, 10);
-    const dateFrom = addDaysToIsoDate(shiftDate, -2);
-    const dateTo = shiftDate;
-
     setIsPreviousShiftLoading(true);
 
     try {
-      const periodTable = await requestJson<ReportPeriodTableResponse>(
-        `/api/reports/period?departmentId=${activeShift.departmentId}&dateFrom=${dateFrom}&dateTo=${dateTo}`,
+      const sourceReportForm = await requestJson<ShiftReportFormResponse>(
+        `/api/shifts/${previousShiftSourceId}/report-form`,
       );
-
-      const previousShiftColumn = findPreviousShiftColumn(
-        periodTable.columns,
-        activeShift.shiftId,
-        activeShift.startedAt,
-      );
-
-      if (!previousShiftColumn?.columnKey) {
-        setPreviousShiftValues(null);
-        return;
-      }
 
       setPreviousShiftValues(
-        buildCopiedReportValues(
-          reportForm,
-          periodTable.rows,
-          previousShiftColumn.columnKey,
-        ),
+        buildCopiedReportValuesFromShiftForm(reportForm, sourceReportForm),
       );
     } catch {
       setPreviousShiftValues(null);
     } finally {
       setIsPreviousShiftLoading(false);
     }
-  }, [
-    activeShift?.departmentId,
-    activeShift?.shiftId,
-    activeShift?.startedAt,
-    reportForm,
-  ]);
+  }, [previousShiftSourceId, reportForm]);
 
   useEffect(() => {
     if (!hasActiveShift || !reportForm) {
@@ -810,6 +760,11 @@ export default function DashboardPage(): React.ReactElement {
       return;
     }
 
+    if (!canStartScheduleNow(selectedSchedule)) {
+      showToast("сейчас нельзя начать выбранную смену", "info");
+      return;
+    }
+
     setIsActionLoading(true);
 
     try {
@@ -822,6 +777,9 @@ export default function DashboardPage(): React.ReactElement {
           startedAt: new Date().toISOString(),
         }),
       });
+
+      saveStoredPreviousShiftId(response.shiftId, response.previousShiftId);
+      setPreviousShiftSourceId(response.previousShiftId ?? null);
 
       setIsStartShiftModalOpen(false);
       await syncWorkspace();
@@ -892,7 +850,7 @@ export default function DashboardPage(): React.ReactElement {
     }
 
     if (!previousShiftValues) {
-      showToast("Предыдущая смена с данными не найдена.", "info");
+      showToast("Последняя смена с данными не найдена.", "info");
       return;
     }
 
@@ -909,7 +867,7 @@ export default function DashboardPage(): React.ReactElement {
       return nextValues;
     });
 
-    showToast("Результаты предыдущей смены скопированы.");
+    showToast("Результаты последней смены скопированы.");
   };
 
   const handlePrint = (): void => {
@@ -1081,7 +1039,7 @@ export default function DashboardPage(): React.ReactElement {
               <span>
                 {isPreviousShiftLoading
                   ? "Поиск данных..."
-                  : "Копировать результаты прошлой смены"}
+                  : "Копировать результаты последней смены"}
               </span>
             </button>
 
@@ -1207,7 +1165,7 @@ export default function DashboardPage(): React.ReactElement {
       <AppModal
         open={isStartShiftModalOpen}
         title="Начать смену?"
-        description="После начала смены отчет загрузится автоматически из бэкенда."
+        description="После начала смены будет доступен отчет для заполнения."
         bodyAlign="left"
         onClose={() => !isActionLoading && setIsStartShiftModalOpen(false)}
         actions={
@@ -1267,13 +1225,19 @@ export default function DashboardPage(): React.ReactElement {
           <div className="dashboard-modal-note">
             Время выбранной смены: {formatScheduleRange(selectedSchedule)}
           </div>
+
+          {!isSelectedScheduleStartAvailable ? (
+            <div className="dashboard-modal-note">
+              сейчас нельзя начать выбранную смену
+            </div>
+          ) : null}
         </div>
       </AppModal>
 
       <AppModal
         open={isFinishConfirmOpen}
         title="Завершить смену?"
-        description="Перед завершением текущие значения будут сохранены на сервере."
+        description="Перед завершением текущие значения будут сохранены."
         bodyAlign="center"
         onClose={() => !isActionLoading && setIsFinishConfirmOpen(false)}
         actions={

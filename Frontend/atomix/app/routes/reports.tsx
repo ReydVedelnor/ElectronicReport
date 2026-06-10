@@ -40,6 +40,36 @@ function formatRussianDate(value: string): string {
   });
 }
 
+function formatDateForPeriodInput(value: string): string {
+  if (!value) return "";
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+
+  return `${match[3]}/${match[2]}/${match[1]}`;
+}
+
+function parsePeriodInputDate(value: string): string {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) return "";
+
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmedValue);
+  if (isoMatch) return trimmedValue;
+
+  const ruMatch = /^(\d{2})[./-](\d{2})[./-](\d{4})$/.exec(trimmedValue);
+  if (!ruMatch) return "";
+
+  const [, day, month, year] = ruMatch;
+  const isoDate = `${year}-${month}-${day}`;
+  const date = new Date(`${isoDate}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) return "";
+  if (formatDateForPeriodInput(isoDate) !== `${day}/${month}/${year}`) return "";
+
+  return isoDate;
+}
+
 function formatDatePeriodLabel(dateFrom: string, dateTo: string): string {
   if (!dateFrom && !dateTo) return "Выберите дату";
   if (dateFrom && (!dateTo || dateFrom === dateTo)) return `За ${formatRussianDate(dateFrom)}`;
@@ -199,6 +229,8 @@ export default function ReportsPage(): React.ReactElement {
   const [datePeriodMode, setDatePeriodMode] = useState<DatePeriodMode>("all");
   const [draftDateFrom, setDraftDateFrom] = useState(today);
   const [draftDateTo, setDraftDateTo] = useState(today);
+  const [draftDateFromText, setDraftDateFromText] = useState(formatDateForPeriodInput(today));
+  const [draftDateToText, setDraftDateToText] = useState(formatDateForPeriodInput(today));
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [departmentId, setDepartmentId] = useState("all");
   const [searchValue, setSearchValue] = useState("");
@@ -383,13 +415,26 @@ export default function ReportsPage(): React.ReactElement {
   const isLoading = isDepartmentsLoading || isReportsLoading;
 
   const handleDatePickerToggle = (): void => {
-    setDraftDateFrom(dateFrom || today);
-    setDraftDateTo(dateTo || dateFrom || today);
+    const nextDraftDateFrom = dateFrom || today;
+    const nextDraftDateTo = dateTo || dateFrom || today;
+
+    setDraftDateFrom(nextDraftDateFrom);
+    setDraftDateTo(nextDraftDateTo);
+    setDraftDateFromText(formatDateForPeriodInput(nextDraftDateFrom));
+    setDraftDateToText(formatDateForPeriodInput(nextDraftDateTo));
     setDatePeriodMode(isAllReportsMode ? "all" : dateFrom && dateTo && dateFrom !== dateTo ? "range" : "single");
     setIsDatePickerOpen((prev) => !prev);
   };
 
   const handleApplyDatePeriod = (): void => {
+    const normalizedDraftDateFrom = parsePeriodInputDate(draftDateFromText) || draftDateFrom;
+    const normalizedDraftDateTo = parsePeriodInputDate(draftDateToText) || draftDateTo;
+
+    setDraftDateFrom(normalizedDraftDateFrom);
+    setDraftDateTo(normalizedDraftDateTo);
+    setDraftDateFromText(formatDateForPeriodInput(normalizedDraftDateFrom));
+    setDraftDateToText(formatDateForPeriodInput(normalizedDraftDateTo));
+
     if (datePeriodMode === "all") {
       setIsAllReportsMode(true);
       setIsDatePickerOpen(false);
@@ -399,15 +444,15 @@ export default function ReportsPage(): React.ReactElement {
     setIsAllReportsMode(false);
 
     if (datePeriodMode === "single") {
-      const selectedDate = draftDateFrom || draftDateTo || today;
+      const selectedDate = normalizedDraftDateFrom || normalizedDraftDateTo || today;
       setDateFrom(selectedDate);
       setDateTo(selectedDate);
       setIsDatePickerOpen(false);
       return;
     }
 
-    const selectedFrom = draftDateFrom || draftDateTo || today;
-    const selectedTo = draftDateTo || draftDateFrom || selectedFrom;
+    const selectedFrom = normalizedDraftDateFrom || normalizedDraftDateTo || today;
+    const selectedTo = normalizedDraftDateTo || normalizedDraftDateFrom || selectedFrom;
 
     if (selectedFrom > selectedTo) {
       setDateFrom(selectedTo);
@@ -424,6 +469,8 @@ export default function ReportsPage(): React.ReactElement {
     setDatePeriodMode("all");
     setDraftDateFrom(today);
     setDraftDateTo(today);
+    setDraftDateFromText(formatDateForPeriodInput(today));
+    setDraftDateToText(formatDateForPeriodInput(today));
     setIsAllReportsMode(true);
     setIsDatePickerOpen(false);
   };
@@ -432,6 +479,8 @@ export default function ReportsPage(): React.ReactElement {
     setDatePeriodMode("single");
     setDraftDateFrom(today);
     setDraftDateTo(today);
+    setDraftDateFromText(formatDateForPeriodInput(today));
+    setDraftDateToText(formatDateForPeriodInput(today));
     setDateFrom(today);
     setDateTo(today);
     setIsAllReportsMode(false);
@@ -494,8 +543,11 @@ export default function ReportsPage(): React.ReactElement {
                       className={`reports-date-period__tab ${datePeriodMode === "single" ? "reports-date-period__tab--active" : ""}`}
                       aria-selected={datePeriodMode === "single"}
                       onClick={() => {
+                        const nextDraftDate = draftDateFrom || today;
+
                         setDatePeriodMode("single");
-                        setDraftDateTo(draftDateFrom || today);
+                        setDraftDateTo(nextDraftDate);
+                        setDraftDateToText(formatDateForPeriodInput(nextDraftDate));
                       }}
                     >
                       Один день
@@ -505,29 +557,45 @@ export default function ReportsPage(): React.ReactElement {
                       className={`reports-date-period__tab ${datePeriodMode === "range" ? "reports-date-period__tab--active" : ""}`}
                       aria-selected={datePeriodMode === "range"}
                       onClick={() => {
+                        const nextDraftDateTo = draftDateTo || draftDateFrom || today;
+
                         setDatePeriodMode("range");
-                        setDraftDateTo(draftDateTo || draftDateFrom || today);
+                        setDraftDateTo(nextDraftDateTo);
+                        setDraftDateToText(formatDateForPeriodInput(nextDraftDateTo));
                       }}
                     >
                       Период
                     </button>
                   </div>
 
-                  {datePeriodMode === "all" ? (
-                    <div className="reports-date-period__hint">
-                      Будут загружены все рапорты, найденные в БД для доступных подразделений.
-                    </div>
-                  ) : datePeriodMode === "single" ? (
+                  {datePeriodMode === "all" ? null : datePeriodMode === "single" ? (
                     <div className="ui-field reports-date-period__field">
                       <label className="ui-field__label" htmlFor="reports-single-date">Дата рапорта</label>
                       <input
                         id="reports-single-date"
                         className="ui-input"
-                        type="date"
-                        value={draftDateFrom}
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="дд/мм/гггг"
+                        value={draftDateFromText}
                         onChange={(event) => {
-                          setDraftDateFrom(event.target.value);
-                          setDraftDateTo(event.target.value);
+                          const nextValue = event.target.value;
+                          const parsedDate = parsePeriodInputDate(nextValue);
+
+                          setDraftDateFromText(nextValue);
+                          setDraftDateToText(nextValue);
+                          if (parsedDate) {
+                            setDraftDateFrom(parsedDate);
+                            setDraftDateTo(parsedDate);
+                          }
+                        }}
+                        onBlur={() => {
+                          const parsedDate = parsePeriodInputDate(draftDateFromText) || draftDateFrom || today;
+
+                          setDraftDateFrom(parsedDate);
+                          setDraftDateTo(parsedDate);
+                          setDraftDateFromText(formatDateForPeriodInput(parsedDate));
+                          setDraftDateToText(formatDateForPeriodInput(parsedDate));
                         }}
                       />
                     </div>
@@ -538,9 +606,25 @@ export default function ReportsPage(): React.ReactElement {
                         <input
                           id="reports-range-from"
                           className="ui-input"
-                          type="date"
-                          value={draftDateFrom}
-                          onChange={(event) => setDraftDateFrom(event.target.value)}
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="дд/мм/гггг"
+                          value={draftDateFromText}
+                          onChange={(event) => {
+                            const nextValue = event.target.value;
+                            const parsedDate = parsePeriodInputDate(nextValue);
+
+                            setDraftDateFromText(nextValue);
+                            if (parsedDate) {
+                              setDraftDateFrom(parsedDate);
+                            }
+                          }}
+                          onBlur={() => {
+                            const parsedDate = parsePeriodInputDate(draftDateFromText) || draftDateFrom || today;
+
+                            setDraftDateFrom(parsedDate);
+                            setDraftDateFromText(formatDateForPeriodInput(parsedDate));
+                          }}
                         />
                       </div>
                       <div className="ui-field reports-date-period__field">
@@ -548,9 +632,25 @@ export default function ReportsPage(): React.ReactElement {
                         <input
                           id="reports-range-to"
                           className="ui-input"
-                          type="date"
-                          value={draftDateTo}
-                          onChange={(event) => setDraftDateTo(event.target.value)}
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="дд/мм/гггг"
+                          value={draftDateToText}
+                          onChange={(event) => {
+                            const nextValue = event.target.value;
+                            const parsedDate = parsePeriodInputDate(nextValue);
+
+                            setDraftDateToText(nextValue);
+                            if (parsedDate) {
+                              setDraftDateTo(parsedDate);
+                            }
+                          }}
+                          onBlur={() => {
+                            const parsedDate = parsePeriodInputDate(draftDateToText) || draftDateTo || draftDateFrom || today;
+
+                            setDraftDateTo(parsedDate);
+                            setDraftDateToText(formatDateForPeriodInput(parsedDate));
+                          }}
                         />
                       </div>
                     </div>
@@ -608,9 +708,7 @@ export default function ReportsPage(): React.ReactElement {
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
             />
-            <button type="button" className="ui-search__action" title="Фильтр" aria-label="Фильтр">
-              <SvgIcon name="filter" />
-            </button>
+
           </div>
         </div>
       </section>
@@ -643,11 +741,7 @@ export default function ReportsPage(): React.ReactElement {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={4} className="ui-empty">Загрузка списка рапортов...</td>
-                </tr>
-              ) : errorMessage && archiveRows.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="ui-empty">{errorMessage}</td>
+                  <td colSpan={4} className="ui-empty reports-list-table__empty">Загрузка списка рапортов...</td>
                 </tr>
               ) : archiveRows.length > 0 ? (
                 paginatedArchiveRows.map((row, index) => (
@@ -671,7 +765,7 @@ export default function ReportsPage(): React.ReactElement {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="ui-empty">Рапорты по выбранным условиям не найдены.</td>
+                  <td colSpan={4} className="ui-empty reports-list-table__empty">Рапорты по выбранным условиям не найдены</td>
                 </tr>
               )}
             </tbody>

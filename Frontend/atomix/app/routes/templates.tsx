@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { AppModal } from "~/components/app-modal";
 import { SvgIcon } from "~/components/svg-icon";
 import {
   getTemplates,
@@ -17,6 +18,9 @@ export default function TemplatesPage() {
   const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>(getTemplates);
   const [search, setSearch] = useState("");
+  const [templateToDelete, setTemplateToDelete] = useState<Template | null>(
+    null,
+  );
 
   useEffect(() => {
     const unsubscribe = subscribeTemplates(() => setTemplates(getTemplates()));
@@ -27,7 +31,10 @@ export default function TemplatesPage() {
 
   const filtered = templates.filter((template) => {
     const query = search.toLowerCase();
-    return template.date.includes(query) || formatArea(template.area).toLowerCase().includes(query);
+    return (
+      template.date.includes(query) ||
+      formatArea(template.area).toLowerCase().includes(query)
+    );
   });
 
   function handleCreate() {
@@ -39,14 +46,25 @@ export default function TemplatesPage() {
     navigate(`/templates/editor?id=${id}`);
   }
 
-  function handleDelete(id: number) {
-    deleteTemplate(id);
+  function handleDelete(template: Template) {
+    setTemplateToDelete(template);
+  }
+
+  function confirmDelete() {
+    if (!templateToDelete) return;
+
+    deleteTemplate(templateToDelete.id);
+    setTemplateToDelete(null);
   }
 
   return (
-    <div className="tpl-list">
-      <div className="tpl-list__toolbar">
-        <button className="btn btn--success" onClick={handleCreate}>
+    <div className="ui-page tpl-list">
+      <div className="ui-toolbar tpl-list__toolbar">
+        <button
+          className="btn btn--primary"
+          type="button"
+          onClick={handleCreate}
+        >
           <SvgIcon name="add" />
           Создать новый шаблон
         </button>
@@ -61,9 +79,6 @@ export default function TemplatesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button className="ui-search__action" type="button" title="Фильтр">
-            <SvgIcon name="filter" />
-          </button>
         </div>
       </div>
 
@@ -72,8 +87,8 @@ export default function TemplatesPage() {
           <h2 className="ui-card__title">Список шаблонов</h2>
         </div>
 
-        <div className="tpl-table-wrap">
-          <table className="tpl-table">
+        <div className="ui-table-wrap">
+          <table className="ui-table">
             <thead>
               <tr>
                 <th>№</th>
@@ -91,6 +106,7 @@ export default function TemplatesPage() {
                   <td>
                     <div className="tpl-table__actions">
                       <button
+                        type="button"
                         className="icon-btn icon-btn--edit"
                         onClick={() => handleEdit(template.id)}
                         title="Редактировать"
@@ -98,8 +114,9 @@ export default function TemplatesPage() {
                         <SvgIcon name="edit" />
                       </button>
                       <button
+                        type="button"
                         className="icon-btn icon-btn--delete"
-                        onClick={() => handleDelete(template.id)}
+                        onClick={() => handleDelete(template)}
                         title="Удалить"
                       >
                         <SvgIcon name="delete" />
@@ -110,7 +127,7 @@ export default function TemplatesPage() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="tpl-table__empty">
+                  <td colSpan={4} className="ui-empty">
                     Шаблоны не найдены
                   </td>
                 </tr>
@@ -119,6 +136,35 @@ export default function TemplatesPage() {
           </table>
         </div>
       </div>
+
+      <AppModal
+        open={Boolean(templateToDelete)}
+        title="Удалить шаблон?"
+        description={
+          templateToDelete
+            ? `Шаблон от ${templateToDelete.date} будет удалён без возможности восстановления.`
+            : undefined
+        }
+        onClose={() => setTemplateToDelete(null)}
+        actions={
+          <>
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => setTemplateToDelete(null)}
+            >
+              Отмена
+            </button>
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={confirmDelete}
+            >
+              Удалить
+            </button>
+          </>
+        }
+      />
     </div>
   );
 }
